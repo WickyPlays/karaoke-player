@@ -1,7 +1,19 @@
 import "./MidiPlayer.scss";
 import SongSelector from "./SongSelector";
 import bg2 from "../../assets/backgrounds/bg2.mp4";
+import { useEffect } from "react";
+import { MainMidiPlayer } from "../../cores/main_midi_player";
+
 export default function MidiPlayer() {
+
+  const midiPlayer = MainMidiPlayer.getInstance();
+
+  useEffect(() => {
+    const loadDefaultData = async () => {
+      midiPlayer.loadAllSongs();
+    };
+    loadDefaultData();
+  }, []);
 
   return (
     <div className="midi-player">

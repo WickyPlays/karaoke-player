@@ -1,19 +1,31 @@
 import { useEffect, useState } from "react";
 import "./SongSelector.scss";
+import { MainMidiPlayer } from "../../cores/main_midi_player";
 
 export default function SongSelector() {
-  const [digits, setDigits] = useState<string[]>([]);
+  const [digits, setDigits] = useState<string[]>(Array(6).fill("0"));
+  const [title, setTitle] = useState<string>("");
+  const midiPlayer = MainMidiPlayer.getInstance();
+
+  useEffect(() => {
+    const song = midiPlayer.getSongByNumber(digits.join(""));
+    if (song) {
+      setTitle(song.title);
+    } else {
+      setTitle("")
+    }
+  }, [digits]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key >= "0" && e.key <= "9") {
-        setDigits(prev => {
+        setDigits((prev) => {
           let next = [...prev];
-          if (next.length < 6) {
-            next.unshift(e.key);
-          } else {
-            next = [e.key, ...next.slice(0, 5)]; // Add new digit at start, keep first 5
+          for (let i = 1; i < 6; i++) {
+            next[i - 1] = next[i];
           }
+          next[5] = e.key;
+
           return next;
         });
       }
@@ -25,9 +37,8 @@ export default function SongSelector() {
   return (
     <div className="song-selector">
       <p className="label">Select a Song</p>
-      <p className="number">
-        {[...Array(6)].map((_, i) => digits[5 - i] || "0").join("")}
-      </p>
+      <p className="number">{digits.join("")}</p>
+      <p className="title">{title}</p>
     </div>
   );
 }
