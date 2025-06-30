@@ -6,6 +6,11 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "core:window:allow-close"
+    "core:window:allow-close",
+    "global-shortcut:allow-register",
+    {
+      "identifier": "fs:scope",
+      "allow": [{ "path": " $RESOURCE/**/*" }]
+    }
   ]
 }

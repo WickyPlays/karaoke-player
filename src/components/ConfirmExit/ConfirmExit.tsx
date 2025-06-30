@@ -24,7 +24,7 @@ export default function ConfirmExit({ onClose }: ConfirmExitProps) {
     <div className="confirm-exit-overlay">
       <div className="confirm-exit">  
         <div className="confirm-exit-content">
-          <p className='subtitle'>Are you sure you want to exit?</p>
+          <p className='subtitle'>What do you want to do?</p>
           <div className="confirm-exit-buttons">
             <Button 
               className="btn-option" 
@@ -32,14 +32,14 @@ export default function ConfirmExit({ onClose }: ConfirmExitProps) {
               href='/'
               onClick={onClose}
             >
-              Yes
+              Quit to menu
             </Button>
             <Button 
               className="btn-option" 
               variant="outlined"
               onClick={onClose}
             >
-              No
+              Return
             </Button>
           </div>
         </div>

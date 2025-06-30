@@ -1,5 +1,5 @@
 import { Button } from "@mui/material";
-import bg from "../../assets/bg.mp4";
+import bg from "../../assets/backgrounds/bg.mp4";
 import "./TitlePage.scss";
 import { getCurrentWindow } from '@tauri-apps/api/window';
 

@@ -1,0 +1,30 @@
+.midi-player {
+  overflow: hidden;
+  user-select: none;
+  width: 100vw;
+  height: 100vh;
+
+  .bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f6f6f6;
+    z-index: -1;
+
+    video {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      object-position: center;
+    }
+  }
+
+  .content {
+    display: grid;
+    grid-template-rows: 20% 50% 30%;
+    width: 100%;
+    height: 100%;
+  }
+}
