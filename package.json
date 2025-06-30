@@ -25,7 +25,8 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.6.3",
     "sass": "^1.89.2",
-    "spessasynth_core": "^3.26.40"
+    "spessasynth_core": "^3.26.40",
+    "spessasynth_lib": "^3.26.32"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

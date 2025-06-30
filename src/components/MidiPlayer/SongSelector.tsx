@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./SongSelector.scss";
-import { MainMidiPlayer } from "../../cores/main_midi_player";
+import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
 
 export default function SongSelector() {
   const [digits, setDigits] = useState<string[]>(Array(6).fill("0"));
@@ -29,10 +29,16 @@ export default function SongSelector() {
           return next;
         });
       }
+
+      if (e.key == 'Enter') {
+        const currentNumber = digits.join("");
+        midiPlayer.addSongByNumber(currentNumber);
+        setDigits(Array(6).fill("0"));
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [digits]); 
 
   return (
     <div className="song-selector">

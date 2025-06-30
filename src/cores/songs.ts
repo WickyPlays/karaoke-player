@@ -16,6 +16,7 @@ export class Song {
   toString(): String {
     return `${this.number} - ${this.title} - ${this.artist}`;
   }
+
   toJSON(): Object {
     return {
       number: this.number,
