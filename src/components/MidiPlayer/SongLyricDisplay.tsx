@@ -88,7 +88,7 @@ export default function SongLyricDisplay() {
         } else {
           const timeDiff = nextNode.time - node.time;
           const elapsed = currTime - node.time;
-          fillPercentage = Math.min(100, (elapsed / timeDiff) * 100);
+          fillPercentage = Math.min(100, (elapsed / timeDiff) * 100) + 5;
         }
       }
 

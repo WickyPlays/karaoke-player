@@ -47,77 +47,58 @@ export class MainMidiPlayer {
   public async loadAllSongs() {
     this.songs = [];
 
-    const dirEntries = await readDir("songs", {
-      baseDir: BaseDirectory.Resource,
-    });
-    const songPromises = dirEntries
-      .filter((entry) => entry.isDirectory)
-      .map(async (entry) => {
-        const configFile = "songs/" + entry.name + "/config.json";
-        const content = await readTextFile(configFile, {
-          baseDir: BaseDirectory.Resource,
-        });
-        const jsonContent = JSON.parse(content);
-
-        const file = await readFile(
-          `songs/${entry.name}/${jsonContent.midi_path}`,
-          { baseDir: BaseDirectory.Resource }
-        );
-        const midiFileBuffer = file.buffer;
-
-        const seq = new Sequencer([{ binary: midiFileBuffer }], this.synth, {
-          skipToFirstNoteOn: false,
-          autoPlay: false,
-        });
-
-        const midi = await seq.getMIDI();
-        const orgTracks = midi.tracks.flat();
-        const tracks = orgTracks.sort((a, b) => a.ticks - b.ticks);
-        const lyricTracks = tracks.filter(
-          (track: any) => track.messageStatusByte === 5
-        );
-
-        const parsedLyrics = lyricTracks.map((track: any) => ({
-          time: midi.MIDIticksToSeconds(track.ticks, midi),
-          text: new TextDecoder("windows-1258").decode(
-            track.messageData.buffer
-          ),
-        }));
-
-        let lyricGroups: LyricNodeGroup[] = [];
-        let currentGroup: LyricNodeGroup = [];
-
-        for (const lyric of parsedLyrics) {
-          if (lyric.text === "\r\n") {
-            if (currentGroup.length > 0) {
-              lyricGroups.push(currentGroup);
-              currentGroup = [];
-            }
-          } else {
-            currentGroup.push(lyric);
-          }
-        }
-
-        if (currentGroup.length > 0) {
-          lyricGroups.push(currentGroup);
-        }
-
-        const song = new Song();
-        song.number = jsonContent.number;
-        song.parentFolder = entry.name;
-        song.title = jsonContent.title;
-        song.artist = jsonContent.artist;
-        song.midiDir = jsonContent.midi_path;
-        song.musicMode = jsonContent.music_mode;
-        song.midiFileBuffer = midiFileBuffer;
-        song.lyricNodeGroups = lyricGroups;
-
-        return song;
+    try {
+      const dirEntries = await readDir("songs", {
+        baseDir: BaseDirectory.Resource,
       });
-    const songs = await Promise.all(songPromises);
-    songs.forEach((song) => this.songs.push(song));
 
-    console.log(`Song has been loaded. There are ${this.songs.length} songs.`);
+      // Filter directories first (synchronous operation)
+      const songDirectories = dirEntries.filter((entry) => entry.isDirectory);
+
+      // Process each directory sequentially to avoid potential resource issues
+      for (const entry of songDirectories) {
+        try {
+          const configFile = "songs/" + entry.name + "/config.json";
+          const content = await readTextFile(configFile, {
+            baseDir: BaseDirectory.Resource,
+          });
+          const jsonContent = JSON.parse(content);
+
+          const file = await readFile(
+            `songs/${entry.name}/${jsonContent.midi_path}`,
+            { baseDir: BaseDirectory.Resource }
+          );
+          const midiFileBuffer = file.buffer;
+
+          const song = new Song();
+          song.number = jsonContent.number;
+          song.parentFolder = entry.name;
+          song.title = jsonContent.title;
+          song.artist = jsonContent.artist;
+          song.midiDir = jsonContent.midi_path;
+          song.musicMode = jsonContent.music_mode;
+          song.midiFileBuffer = midiFileBuffer;
+
+          this.songs.push(song);
+
+          globalEvent.call('song_loaded', {song, loadedCount: this.songs.length, totalCount: dirEntries.length});
+
+        } catch (error) {
+          console.error(
+            `Error loading song from directory ${entry.name}:`,
+            error
+          );
+          // Continue with next song even if one fails
+        }
+      }
+
+      console.log(
+        `Songs have been loaded. There are ${this.songs.length} songs.`
+      );
+    } catch (error) {
+      console.error("Error loading songs:", error);
+      throw error; // Re-throw if you want calling code to handle the error
+    }
   }
 
   public addSongToQueue(song: Song, playIfEmpty: boolean = false) {
@@ -128,7 +109,11 @@ export class MainMidiPlayer {
       length: this.queueSongs.length,
     });
 
-    if (playIfEmpty && this.playingSong == null && this.queueSongs.length == 1) {
+    if (
+      playIfEmpty &&
+      this.playingSong == null &&
+      this.queueSongs.length == 1
+    ) {
       this.playSongInQueue();
     }
   }
@@ -153,7 +138,7 @@ export class MainMidiPlayer {
     }
   }
 
-  public playSong(song: Song) {
+  public async playSong(song: Song) {
     this.playingSong = song;
     this.currentSeq = new Sequencer(
       [{ binary: song.midiFileBuffer }],
@@ -164,6 +149,40 @@ export class MainMidiPlayer {
       }
     );
     this.currentSeq.loop = false;
+
+    // Parse lyrics when playing the song
+    const midi = await this.currentSeq.getMIDI();
+    const orgTracks = midi.tracks.flat();
+    const tracks = orgTracks.sort((a, b) => a.ticks - b.ticks);
+    const lyricTracks = tracks.filter(
+      (track: any) => track.messageStatusByte === 5
+    );
+
+    const parsedLyrics = lyricTracks.map((track: any) => ({
+      time: midi.MIDIticksToSeconds(track.ticks, midi),
+      text: new TextDecoder("windows-1258").decode(track.messageData.buffer),
+    }));
+
+    let lyricGroups: LyricNodeGroup[] = [];
+    let currentGroup: LyricNodeGroup = [];
+
+    for (const lyric of parsedLyrics) {
+      if (lyric.text === "\r\n") {
+        if (currentGroup.length > 0) {
+          lyricGroups.push(currentGroup);
+          currentGroup = [];
+        }
+      } else {
+        currentGroup.push(lyric);
+      }
+    }
+
+    if (currentGroup.length > 0) {
+      lyricGroups.push(currentGroup);
+    }
+
+    song.setLyricGroups(lyricGroups);
+
     this.processor?.processMidiSong(song).then((p) => {
       this.processor?.start();
       globalEvent.call("song_play", { song });
