@@ -27,14 +27,20 @@ export default function SongQueueBar() {
 
   return (
     <div className="song-queue-bar">
-      <div className="container">
-        <div className="queue-list">
-          {songs.map((song, index) => (
-            <div className="queue-item" key={index}>{song.number}</div>
-          ))}
+      <div className="content" style={{ display: songs.length === 0 ? "none" : "block" }}>
+        <div className="container">
+          <div className="queue-list">
+            {songs.map((song, index) => (
+              <div className="queue-item" key={index}>
+                {song.number}
+              </div>
+            ))}
+          </div>
         </div>
+        <p className="current-song">
+          Current song: {songs.length > 0 ? songs[0].title : "None"}
+        </p>
       </div>
-      <p className="current-song">Current song: {songs.length > 0 ? songs[0].title : "None"}</p>
     </div>
   );
 }

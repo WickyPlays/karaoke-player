@@ -33,6 +33,7 @@ export default function SongSelector() {
       if (e.key == 'Enter') {
         const currentNumber = digits.join("");
         midiPlayer.addSongByNumber(currentNumber);
+        midiPlayer.playSongInQueue();
         setDigits(Array(6).fill("0"));
       }
     };

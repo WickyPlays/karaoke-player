@@ -1,0 +1,27 @@
+.song-lyric-display {
+  width: 100vw;
+
+  .lyric-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .lyric-top,
+  .lyric-bottom {
+    background-color: #0000009c;
+  }
+
+  .lyric {
+    font-size: 50px;
+    font-weight: 700;
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    z-index: 1;
+    height: 100%;
+    padding: 20px 10px;
+  }
+}
