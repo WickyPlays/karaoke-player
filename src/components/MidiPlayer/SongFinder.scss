@@ -1,0 +1,33 @@
+.song-finder-dialog {
+  .search-container {
+    padding: 16px;
+    background-color: #515151;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .song-table {
+    max-height: 60vh;
+    overflow-y: auto;
+
+    .MuiTableCell-root {
+      padding: 12px 16px;
+    }
+
+    .MuiTableHead-root {
+      background-color: #f5f5f5;
+    }
+  }
+
+  .search-field {
+    background-color: #707070;
+
+    * {
+      color: #FFF;
+    }
+  }
+
+  input {
+    box-shadow: none !important;
+    background-color: #707070;
+  }
+}

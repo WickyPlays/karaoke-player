@@ -102,17 +102,16 @@ export class MainMidiPlayer {
           lyricGroups.push(currentGroup);
         }
 
-        const song = new Song(
-          jsonContent.number,
-          entry.name,
-          jsonContent.title,
-          jsonContent.artist,
-          jsonContent.midi_path,
-          jsonContent.music_mode,
-          midiFileBuffer
-        );
+        const song = new Song();
+        song.number = jsonContent.number;
+        song.parentFolder = entry.name;
+        song.title = jsonContent.title;
+        song.artist = jsonContent.artist;
+        song.midiDir = jsonContent.midi_path;
+        song.musicMode = jsonContent.music_mode;
+        song.midiFileBuffer = midiFileBuffer;
+        song.lyricNodeGroups = lyricGroups;
 
-        song.setLyricGroups(lyricGroups);
         return song;
       });
     const songs = await Promise.all(songPromises);
@@ -121,13 +120,21 @@ export class MainMidiPlayer {
     console.log(`Song has been loaded. There are ${this.songs.length} songs.`);
   }
 
-  public addSongToQueue(song: Song) {
+  public addSongToQueue(song: Song, playIfEmpty: boolean = false) {
     this.queueSongs.push(song);
     globalEvent.call("song_queue_added", {
       song,
       queueSongs: this.queueSongs,
       length: this.queueSongs.length,
     });
+
+    if (playIfEmpty && this.playingSong == null && this.queueSongs.length == 1) {
+      this.playSongInQueue();
+    }
+  }
+
+  public getLoadedSongs() {
+    return this.songs;
   }
 
   public getQueueSongs() {
@@ -159,10 +166,7 @@ export class MainMidiPlayer {
     this.currentSeq.loop = false;
     this.processor?.processMidiSong(song).then((p) => {
       this.processor?.start();
-
-      globalEvent.call("song_play", {
-        song,
-      });
+      globalEvent.call("song_play", { song });
     });
   }
 
@@ -173,6 +177,12 @@ export class MainMidiPlayer {
       this.playSong(song);
 
       globalEvent.call("song_queue_play", {
+        song,
+        queueSongs: this.queueSongs,
+        length: this.queueSongs.length,
+      });
+
+      globalEvent.call("song_queue_updated", {
         song,
         queueSongs: this.queueSongs,
         length: this.queueSongs.length,
@@ -190,6 +200,10 @@ export class MainMidiPlayer {
 
   public getCurrentTime(): number {
     return this.currentSeq?.currentTime || 0;
+  }
+
+  public getPlayingSong(): Song | null {
+    return this.playingSong;
   }
 
   public clearQueue() {

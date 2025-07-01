@@ -5,6 +5,8 @@ import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
 import SongQueueBar from "./SongQueueBar";
 import { loadBackgrounds } from "../../cores/main";
 import SongLyricDisplay from "./SongLyricDisplay";
+import SongLoadingScreen from "./SongLoadingScreen";
+import SongFinder from "./SongFinder";
 
 export default function MidiPlayer() {
   const midiPlayer = MainMidiPlayer.getInstance();
@@ -12,6 +14,7 @@ export default function MidiPlayer() {
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -24,9 +27,11 @@ export default function MidiPlayer() {
           midiPlayer.getProcessor().pause();
         }
         setIsPaused(!isPaused);
+      } else if (e.key === "f" || e.key === "F") {
+        setIsSearchOpen(true);
       }
     },
-    [backgroundFiles.length, isPaused]
+    [backgroundFiles.length, isPaused, isSearchOpen]
   );
 
   useEffect(() => {
@@ -48,7 +53,7 @@ export default function MidiPlayer() {
   }, [backgroundFiles.length, handleKeyDown]);
 
   if (!isInitialized) {
-    return <div className="midi-player loading">Loading...</div>;
+    return <SongLoadingScreen />;
   }
 
   return (
@@ -76,6 +81,7 @@ export default function MidiPlayer() {
           <SongLyricDisplay />
         </div>
       </div>
+      {isSearchOpen && <SongFinder onClose={() => setIsSearchOpen(false)} />}
     </div>
   );
 }

@@ -35,9 +35,7 @@ export default function SongSelector() {
 
         midiPlayer.addSongByNumber(currentNumber);
 
-        console.log(`Added! Now queue size = ${midiPlayer.getQueueSongs().length}`);
-
-        if (midiPlayer.getQueueSongs().length == 1) {
+        if (midiPlayer.getPlayingSong() == null && midiPlayer.getQueueSongs().length == 1) {
           midiPlayer.playSongInQueue();
         }
         setDigits(Array(6).fill("0"));
