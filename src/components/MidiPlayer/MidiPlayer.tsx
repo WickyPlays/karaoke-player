@@ -11,12 +11,23 @@ export default function MidiPlayer() {
   const [backgroundFiles, setBackgroundFiles] = useState<string[]>([]);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'b' || e.key === 'B') {
-      setCurrentBgIndex(prev => (prev + 1) % backgroundFiles.length);
-    }
-  }, [backgroundFiles.length]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "b" || e.key === "B") {
+        setCurrentBgIndex((prev) => (prev + 1) % backgroundFiles.length);
+      } else if (e.key === "p" || e.key === "P") {
+        if (isPaused) {
+          midiPlayer.getProcessor().resume();
+        } else {
+          midiPlayer.getProcessor().pause();
+        }
+        setIsPaused(!isPaused);
+      }
+    },
+    [backgroundFiles.length, isPaused]
+  );
 
   useEffect(() => {
     const initialize = async () => {
@@ -31,8 +42,8 @@ export default function MidiPlayer() {
 
   useEffect(() => {
     if (backgroundFiles.length > 0) {
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
     }
   }, [backgroundFiles.length, handleKeyDown]);
 
@@ -44,12 +55,12 @@ export default function MidiPlayer() {
     <div className="midi-player">
       {backgroundFiles.length > 0 && (
         <div className="bg">
-          <video 
-            src={backgroundFiles[currentBgIndex]} 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
+          <video
+            src={backgroundFiles[currentBgIndex]}
+            autoPlay
+            loop
+            muted
+            playsInline
             key={backgroundFiles[currentBgIndex]}
           />
         </div>

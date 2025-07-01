@@ -130,6 +130,10 @@ export class MainMidiPlayer {
     });
   }
 
+  public getQueueSongs() {
+    return this.queueSongs;
+  }
+
   public getSongByNumber(number: string): Song | undefined {
     return this.songs.find((song) => song.number == number);
   }

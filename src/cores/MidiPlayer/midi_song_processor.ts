@@ -12,11 +12,14 @@ interface MidiEvent {
 export class MidiSongProcessor {
   private song: Song | null = null;
   private startTimestamp: number | null = null;
+  private pauseTimestamp: number | null = null;
+  private accumulatedPausedTime = 0;
   private midiPlayer: MainMidiPlayer | undefined;
   private totalTime = 0;
   private events: MidiEvent[] = [];
   private animationFrameId: number | null = null;
   private isPlaying = false;
+  private isPaused = false;
 
   constructor(midiPlayer: MainMidiPlayer) {
     this.midiPlayer = midiPlayer;
@@ -51,27 +54,82 @@ export class MidiSongProcessor {
   }
 
   public start() {
-    if (this.isPlaying) return;
+    if (this.isPlaying && !this.isPaused) return;
     
+    if (this.isPaused) {
+      this.resume();
+      return;
+    }
+    
+    // Reset all events to available when starting fresh
+    this.events.forEach(event => event.available = true);
+    this.accumulatedPausedTime = 0;
     this.startTimestamp = Date.now();
     this.isPlaying = true;
+    this.isPaused = false;
     this.startAnimationFrame();
   }
 
-  public stop() {
-    if (!this.isPlaying) return;
+  public pause() {
+    if (!this.isPlaying || this.isPaused) return;
     
-    this.isPlaying = false;
+    this.pauseTimestamp = Date.now();
+    this.isPaused = true;
+    
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+  }
+
+  public resume() {
+    if (!this.isPlaying || !this.isPaused) return;
+    
+    if (this.pauseTimestamp) {
+      this.accumulatedPausedTime += Date.now() - this.pauseTimestamp;
+      this.pauseTimestamp = null;
+    }
+    
+    this.isPaused = false;
+    this.startAnimationFrame();
+  }
+
+  public stop() {
+    if (!this.isPlaying && !this.isPaused) return;
+    
+    this.isPlaying = false;
+    this.isPaused = false;
+    
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+    
     this.startTimestamp = null;
+    this.pauseTimestamp = null;
+    this.accumulatedPausedTime = 0;
+    
+    // Send all notes off when stopping
+    this.sendAllNotesOff();
+  }
+
+  private sendAllNotesOff() {
+    const synth = this.midiPlayer?.getSynth();
+    if (!synth) return;
+
+    try {
+      // Send all notes off on all channels (1-16)
+      for (let channel = 0; channel < 16; channel++) {
+        synth.sendMessage([0xB0 + channel, 0x7B, 0x00]); // All Notes Off
+      }
+    } catch (error) {
+      console.error('Error sending all notes off:', error);
+    }
   }
 
   private startAnimationFrame() {
     const update = () => {
-      if (!this.isPlaying) return;
+      if (!this.isPlaying || this.isPaused) return;
       
       this.updateFrame();
       this.animationFrameId = requestAnimationFrame(update);
@@ -81,9 +139,9 @@ export class MidiSongProcessor {
   }
 
   private updateFrame() {
-    if (!this.startTimestamp || !this.isPlaying) return;
+    if (!this.startTimestamp || !this.isPlaying || this.isPaused) return;
     
-    const currentTime = (Date.now() - this.startTimestamp) / 1000;
+    const currentTime = (Date.now() - this.startTimestamp - this.accumulatedPausedTime) / 1000;
     
     const synth = this.midiPlayer?.getSynth();
     if (!synth) return;
@@ -119,9 +177,20 @@ export class MidiSongProcessor {
     return this.isPlaying;
   }
 
+  public isPausedState(): boolean {
+    return this.isPaused;
+  }
+
   public getCurrentPlaybackTime(): number {
-    if (!this.startTimestamp || !this.isPlaying) return 0;
-    return (Date.now() - this.startTimestamp) / 1000;
+    if (!this.startTimestamp) return 0;
+    
+    if (this.isPaused && this.pauseTimestamp) {
+      return (this.pauseTimestamp - this.startTimestamp - this.accumulatedPausedTime) / 1000;
+    }
+    
+    if (!this.isPlaying) return 0;
+    
+    return (Date.now() - this.startTimestamp - this.accumulatedPausedTime) / 1000;
   }
 
   public getTotalTime(): number {

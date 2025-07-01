@@ -12,7 +12,7 @@ export default function SongSelector() {
     if (song) {
       setTitle(song.title);
     } else {
-      setTitle("")
+      setTitle("");
     }
   }, [digits]);
 
@@ -30,16 +30,22 @@ export default function SongSelector() {
         });
       }
 
-      if (e.key == 'Enter') {
+      if (e.key == "Enter") {
         const currentNumber = digits.join("");
+
         midiPlayer.addSongByNumber(currentNumber);
-        midiPlayer.playSongInQueue();
+
+        console.log(`Added! Now queue size = ${midiPlayer.getQueueSongs().length}`);
+
+        if (midiPlayer.getQueueSongs().length == 1) {
+          midiPlayer.playSongInQueue();
+        }
         setDigits(Array(6).fill("0"));
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [digits]); 
+  }, [digits]);
 
   return (
     <div className="song-selector">

@@ -9,12 +9,16 @@
     gap: 15px;
   }
 
-  .lyric-top,
-  .lyric-bottom {
+  .lyric-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     background-color: #0000009c;
+    gap: 1px;
+    padding: 0 15px;
   }
 
-  .lyric {
+  .lyric-letter {
     font-size: 50px;
     font-weight: 700;
     color: transparent;
@@ -22,6 +26,11 @@
     -webkit-background-clip: text;
     z-index: 1;
     height: 100%;
-    padding: 20px 10px;
+    margin: 0;
+    padding: 25px 0 20px;
+  }
+  
+  .whitespace {
+    width: 10px;
   }
 }
