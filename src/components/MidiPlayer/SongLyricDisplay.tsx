@@ -132,12 +132,23 @@ export default function SongLyricDisplay() {
       setGaps(newGaps);
     }
 
+    function handleSongStopped(event: any) {
+      setCurrTime(0);
+      setTopGroup([]);
+      setBottomGroup([]);
+      setCooldownTime(0);
+      setActiveGap(null);
+      setSong(null);
+    }
+
     animationFrameRef.current = requestAnimationFrame(updateLyrics);
     globalEvent.on("song_played", handleSongPlay);
+    globalEvent.on("song_stopped", handleSongStopped)
 
     return () => {
       cancelAnimationFrame(animationFrameRef.current);
       globalEvent.off("song_played", handleSongPlay);
+      globalEvent.off("song_stopped", handleSongStopped);
     };
   }, [updateLyrics]);
 

@@ -9,6 +9,12 @@
     "preview": "vite preview",
     "tauri": "tauri"
   },
+  "author": {
+    "name": "Tu Thien Bao",
+    "email": "baottworkspace@gmail.com",
+    "url": "https://github.com/WickyPlays"
+  },
+  "license": "MIT",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",

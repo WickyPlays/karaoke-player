@@ -28,6 +28,10 @@ export class MainMidiPlayer {
   public async setup() {
     await this.loadSynth();
     await this.loadAllSongs();
+
+    globalEvent.on("song_stopped", () => {
+      this.playSongInQueue();
+    });
   }
 
   public async loadSynth() {
