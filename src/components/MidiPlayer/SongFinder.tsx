@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import {
   Search as SearchIcon,
-  QueueMusic as QueueMusicIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 
 export default function SongFinder({ onClose }: { onClose: () => void }) {
@@ -55,7 +55,7 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    setRowsPerPage(parseInt(event.target.value, 25));
     setPage(0);
   };
 
@@ -112,12 +112,12 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((song) => (
                   <TableRow key={song.number}>
-                    <TableCell>{song.number}</TableCell>
-                    <TableCell>{song.title}</TableCell>
-                    <TableCell>{song.artist}</TableCell>
+                    <TableCell width="15%">{song.number}</TableCell>
+                    <TableCell width="45%">{song.title}</TableCell>
+                    <TableCell width="30%">{song.artist}</TableCell>
                     <TableCell>
                       <IconButton onClick={() => handleAddToQueue(song)}>
-                        <QueueMusicIcon color="primary" />
+                        <AddIcon sx={{ color: "#000000" }} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -130,7 +130,7 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
             </TableBody>
           </Table>
           <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
+            rowsPerPageOptions={[25, 50, 100]}
             component="div"
             count={filteredSongs.length}
             rowsPerPage={rowsPerPage}

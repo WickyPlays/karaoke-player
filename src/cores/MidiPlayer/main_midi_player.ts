@@ -52,44 +52,18 @@ export class MainMidiPlayer {
         baseDir: BaseDirectory.Resource,
       });
 
-      // Filter directories first (synchronous operation)
       const songDirectories = dirEntries.filter((entry) => entry.isDirectory);
 
-      // Process each directory sequentially to avoid potential resource issues
-      for (const entry of songDirectories) {
-        try {
-          const configFile = "songs/" + entry.name + "/config.json";
-          const content = await readTextFile(configFile, {
-            baseDir: BaseDirectory.Resource,
-          });
-          const jsonContent = JSON.parse(content);
+      const batchSize = 40; // 40 for performance
+      const batches = [];
 
-          const file = await readFile(
-            `songs/${entry.name}/${jsonContent.midi_path}`,
-            { baseDir: BaseDirectory.Resource }
-          );
-          const midiFileBuffer = file.buffer;
+      for (let i = 0; i < songDirectories.length; i += batchSize) {
+        batches.push(songDirectories.slice(i, i + batchSize));
+      }
 
-          const song = new Song();
-          song.number = jsonContent.number;
-          song.parentFolder = entry.name;
-          song.title = jsonContent.title;
-          song.artist = jsonContent.artist;
-          song.midiDir = jsonContent.midi_path;
-          song.musicMode = jsonContent.music_mode;
-          song.midiFileBuffer = midiFileBuffer;
-
-          this.songs.push(song);
-
-          globalEvent.call('song_loaded', {song, loadedCount: this.songs.length, totalCount: dirEntries.length});
-
-        } catch (error) {
-          console.error(
-            `Error loading song from directory ${entry.name}:`,
-            error
-          );
-          // Continue with next song even if one fails
-        }
+      for (const batch of batches) {
+        const batchPromises = batch.map((entry) => this.loadSong(entry, songDirectories.length));
+        await Promise.all(batchPromises);
       }
 
       console.log(
@@ -97,7 +71,42 @@ export class MainMidiPlayer {
       );
     } catch (error) {
       console.error("Error loading songs:", error);
-      throw error; // Re-throw if you want calling code to handle the error
+      throw error;
+    }
+  }
+
+  private async loadSong(entry: any, totalCount: number = 0) {
+    try {
+      const configFile = "songs/" + entry.name + "/config.json";
+      const content = await readTextFile(configFile, {
+        baseDir: BaseDirectory.Resource,
+      });
+      const jsonContent = JSON.parse(content);
+
+      const file = await readFile(
+        `songs/${entry.name}/${jsonContent.midi_path}`,
+        { baseDir: BaseDirectory.Resource }
+      );
+      const midiFileBuffer = file.buffer;
+
+      const song = new Song();
+      song.number = jsonContent.number;
+      song.parentFolder = entry.name;
+      song.title = jsonContent.title;
+      song.artist = jsonContent.artist;
+      song.midiDir = jsonContent.midi_path;
+      song.musicMode = jsonContent.music_mode;
+      song.midiFileBuffer = midiFileBuffer;
+
+      this.songs.push(song);
+
+      globalEvent.call("song_loaded", {
+        song,
+        loadedCount: this.songs.length,
+        totalCount,
+      });
+    } catch (error) {
+      console.error(`Error loading song from directory ${entry.name}:`, error);
     }
   }
 
@@ -185,7 +194,7 @@ export class MainMidiPlayer {
 
     this.processor?.processMidiSong(song).then((p) => {
       this.processor?.start();
-      globalEvent.call("song_play", { song });
+      globalEvent.call("song_played", { song });
     });
   }
 
@@ -206,6 +215,8 @@ export class MainMidiPlayer {
         queueSongs: this.queueSongs,
         length: this.queueSongs.length,
       });
+    } else {
+      this.cleanup();
     }
   }
 
@@ -230,8 +241,18 @@ export class MainMidiPlayer {
     globalEvent.call("song_queue_clear");
   }
 
+  public nextSong() {
+    this.playSongInQueue();
+  }
+
   public getProcessor() {
     return this.processor;
+  }
+
+  public cleanup() {
+    this.playingSong = null;
+    this.currentSeq = null;
+    this.processor?.cleanup();
   }
 
   public static getInstance(): MainMidiPlayer {

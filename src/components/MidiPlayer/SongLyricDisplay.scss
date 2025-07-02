@@ -29,8 +29,17 @@
     margin: 0;
     padding: 25px 0 20px;
   }
-  
+
   .whitespace {
     width: 10px;
+  }
+
+  .cooldown-time {
+    position: absolute;
+    font-size: 40px;
+    font-weight: 700;
+    width: 100%;
+    text-align: center;
+    transform: translate(-20%, -30px);
   }
 }

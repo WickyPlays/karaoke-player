@@ -8,6 +8,7 @@ export default function SongQueueBar() {
   const [playingSong, setPlayingSong] = useState<Song | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
+  const [speed, setSpeed] = useState(1);
   const animationRef = useRef<number>();
   const midiPlayer = MainMidiPlayer.getInstance();
 
@@ -62,16 +63,22 @@ export default function SongQueueBar() {
       setPlayingSong(event.song);
     }
 
-    globalEvent.on("song_play", onSongPlay),
-      globalEvent.on("song_queue_added", onSongAdded),
-      globalEvent.on("song_queue_clear", onQueueClear),
-      globalEvent.on("song_queue_updated", onSongUpdated);
+    function onSpeedChanged(event: { speed: number }) {
+      setSpeed(event.speed);
+    }
+
+    globalEvent.on("song_played", onSongPlay),
+    globalEvent.on("song_queue_added", onSongAdded),
+    globalEvent.on("song_queue_clear", onQueueClear),
+    globalEvent.on("song_queue_updated", onSongUpdated);
+    globalEvent.on("song_speed_changed", onSpeedChanged);
 
     return () => {
-      globalEvent.off("song_play", onSongPlay);
+      globalEvent.off("song_played", onSongPlay);
       globalEvent.off("song_queue_added", onSongAdded);
       globalEvent.off("song_queue_clear", onQueueClear);
       globalEvent.off("song_queue_updated", onSongUpdated);
+      globalEvent.off("song_speed_changed", onSpeedChanged);
     };
   }, []);
 
@@ -96,12 +103,15 @@ export default function SongQueueBar() {
             ))}
           </div>
         </div>
-        <p className="current-song">
-          Current song:{" "}
-          {playingSong
-            ? `${playingSong.title} (${formatTime(currentTime)})`
-            : "None"}
-        </p>
+        <div className="meta-container">
+          <p className="current-song">
+            Current song:{" "}
+            {playingSong
+              ? `${playingSong.title} (${formatTime(currentTime)})`
+              : "None"}
+          </p>
+          {speed > 1 && <p className="speed">{speed}x</p>}
+        </div>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ export default function MidiPlayer() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isFastForward, setIsFastForward] = useState(false);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -29,9 +30,18 @@ export default function MidiPlayer() {
         setIsPaused(!isPaused);
       } else if (e.key === "f" || e.key === "F") {
         setIsSearchOpen(true);
+      } else if (e.key === 'n' || e.key === 'N') {
+        midiPlayer.nextSong()
+      } else if (e.key === 'x' || e.key === 'X') {
+        if (isFastForward) {
+          midiPlayer.getProcessor().setSpeed(1);
+        } else {
+          midiPlayer.getProcessor().setSpeed(2);
+        }
+        setIsFastForward(!isFastForward);
       }
     },
-    [backgroundFiles.length, isPaused, isSearchOpen]
+    [backgroundFiles.length, isPaused, isSearchOpen, isFastForward]
   );
 
   useEffect(() => {

@@ -22,7 +22,7 @@
     color: #ffffff;
   }
 
-  .current-song {
+  .meta-container {
     box-sizing: border-box;
     background-color: #ffffff;
     color: #000000;
@@ -30,6 +30,15 @@
     border-radius: 10px;
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
-    display: inline-block;
+    display: inline-flex;
+    gap: 10px;
+
+    .speed {
+      color: #FFF;
+      background-color: #0d9700;
+      padding: 0 10px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
   }
 }
