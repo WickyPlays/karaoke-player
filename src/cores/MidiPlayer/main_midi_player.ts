@@ -54,7 +54,7 @@ export class MainMidiPlayer {
 
       const songDirectories = dirEntries.filter((entry) => entry.isDirectory);
 
-      const batchSize = 40; // 40 for performance
+      const batchSize = 30; // 30 for performance
       const batches = [];
 
       for (let i = 0; i < songDirectories.length; i += batchSize) {
@@ -234,6 +234,10 @@ export class MainMidiPlayer {
 
   public getPlayingSong(): Song | null {
     return this.playingSong;
+  }
+
+  public getDuration() {
+    return this.currentSeq?.duration || 0;
   }
 
   public clearQueue() {

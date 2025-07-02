@@ -30,13 +30,11 @@ export default function SongQueueBar() {
   };
 
   useEffect(() => {
-    // Initialize with current player state
     const currentSong = midiPlayer?.getPlayingSong();
     if (currentSong) {
       setPlayingSong(currentSong);
     }
 
-    // Start time updates
     animationRef.current = requestAnimationFrame(updateTime);
 
     return () => {
@@ -68,9 +66,9 @@ export default function SongQueueBar() {
     }
 
     globalEvent.on("song_played", onSongPlay),
-    globalEvent.on("song_queue_added", onSongAdded),
-    globalEvent.on("song_queue_clear", onQueueClear),
-    globalEvent.on("song_queue_updated", onSongUpdated);
+      globalEvent.on("song_queue_added", onSongAdded),
+      globalEvent.on("song_queue_clear", onQueueClear),
+      globalEvent.on("song_queue_updated", onSongUpdated);
     globalEvent.on("song_speed_changed", onSpeedChanged);
 
     return () => {
@@ -105,10 +103,14 @@ export default function SongQueueBar() {
         </div>
         <div className="meta-container">
           <p className="current-song">
-            Current song:{" "}
-            {playingSong
-              ? `${playingSong.title} (${formatTime(currentTime)})`
-              : "None"}
+            {playingSong ? (
+              <p>
+                Current song: {playingSong.title} ({formatTime(currentTime)} /{" "}
+                {formatTime(midiPlayer.getDuration() || 0)})
+              </p>
+            ) : (
+              <p>None</p>
+            )}
           </p>
           {speed > 1 && <p className="speed">{speed}x</p>}
         </div>

@@ -85,7 +85,11 @@ export default function SongSelector() {
     <div className="song-selector">
       <p className="label">Select a Song</p>
       <p className="number">{digits.join("")}</p>
-      <p className="title">{title}</p>
+      {
+        title && (
+          <p className="title">{title}</p>
+        )
+      }
     </div>
   );
 }

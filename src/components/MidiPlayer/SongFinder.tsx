@@ -27,7 +27,7 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
   const [open, setOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
   const midiPlayer = MainMidiPlayer.getInstance();
 
   useEffect(() => {
