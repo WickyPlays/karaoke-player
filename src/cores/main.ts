@@ -1,5 +1,6 @@
-import { BaseDirectory, resourceDir } from '@tauri-apps/api/path';
+import { BaseDirectory } from '@tauri-apps/api/path';
 import { exists, mkdir, readDir, readFile } from '@tauri-apps/plugin-fs';
+import { convertFileSrc } from '@tauri-apps/api/core';
 
 export async function loadDefaultData() {
   const songsFolder = 'songs'
