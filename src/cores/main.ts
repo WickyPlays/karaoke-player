@@ -1,4 +1,4 @@
-import { BaseDirectory } from '@tauri-apps/api/path';
+import { BaseDirectory, join, resourceDir } from '@tauri-apps/api/path';
 import { exists, mkdir, readDir, readFile } from '@tauri-apps/plugin-fs';
 import { convertFileSrc } from '@tauri-apps/api/core';
 
@@ -24,15 +24,11 @@ export async function loadDefaultData() {
 }
 
 export async function loadBackgrounds() {
+  const resDir = await resourceDir();
   const dir = await readDir('backgrounds', { baseDir: BaseDirectory.Resource });
-  const bgs = []
 
-  for (let i = 0; i < dir.length; i++) {
-    const buffer = await readFile(`backgrounds/${dir[i].name}`, { baseDir: BaseDirectory.Resource });
-    const blob = new Blob([buffer], { type: 'video/mp4' });
-    const url = URL.createObjectURL(blob);
-    bgs.push(url);
-  }
-
-  return bgs;
+  const bgDirs = await Promise.all(
+    dir.map(file => join(resDir, `backgrounds/${file.name}`))
+  );
+  return bgDirs
 }

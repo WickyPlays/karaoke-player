@@ -1,12 +1,13 @@
 import "./MidiPlayer.scss";
 import SongSelector from "./SongSelector";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
 import SongQueueBar from "./SongQueueBar";
 import { loadBackgrounds } from "../../cores/main";
 import SongLyricDisplay from "./SongLyricDisplay";
 import SongLoadingScreen from "./SongLoadingScreen";
 import SongFinder from "./SongFinder";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 export default function MidiPlayer() {
   const midiPlayer = MainMidiPlayer.getInstance();
@@ -16,6 +17,7 @@ export default function MidiPlayer() {
   const [isPaused, setIsPaused] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFastForward, setIsFastForward] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -31,7 +33,7 @@ export default function MidiPlayer() {
       } else if (e.key === "f" || e.key === "F") {
         setIsSearchOpen(true);
       } else if (e.key === 'n' || e.key === 'N') {
-        midiPlayer.nextSong()
+        midiPlayer.nextSong();
       } else if (e.key === 'x' || e.key === 'X') {
         if (isFastForward) {
           midiPlayer.getProcessor().setSpeed(1);
@@ -41,7 +43,7 @@ export default function MidiPlayer() {
         setIsFastForward(!isFastForward);
       }
     },
-    [backgroundFiles.length, isPaused, isSearchOpen, isFastForward]
+    [backgroundFiles.length, isPaused, isSearchOpen, isFastForward, midiPlayer]
   );
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function MidiPlayer() {
     };
 
     initialize();
-  }, []);
+  }, [midiPlayer]);
 
   useEffect(() => {
     if (backgroundFiles.length > 0) {
@@ -61,6 +63,23 @@ export default function MidiPlayer() {
       return () => window.removeEventListener("keydown", handleKeyDown);
     }
   }, [backgroundFiles.length, handleKeyDown]);
+
+  // Handle video loading when background changes
+  useEffect(() => {
+    if (videoRef.current && backgroundFiles.length > 0) {
+      const video = videoRef.current;
+      const handleLoadedData = () => {
+        video.play().catch(e => console.error("Video play failed:", e));
+      };
+      
+      video.addEventListener('loadeddata', handleLoadedData);
+      video.load();
+
+      return () => {
+        video.removeEventListener('loadeddata', handleLoadedData);
+      };
+    }
+  }, [backgroundFiles, currentBgIndex]);
 
   if (!isInitialized) {
     return <SongLoadingScreen />;
@@ -71,7 +90,8 @@ export default function MidiPlayer() {
       {backgroundFiles.length > 0 && (
         <div className="bg">
           <video
-            src={backgroundFiles[currentBgIndex]}
+            ref={videoRef}
+            src={convertFileSrc(backgroundFiles[currentBgIndex])}
             autoPlay
             loop
             muted
