@@ -20,26 +20,28 @@ export default function MidiPlayer() {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "b" || e.key === "B") {
-        setCurrentBgIndex((prev) => (prev + 1) % backgroundFiles.length);
-      } else if (e.key === "p" || e.key === "P") {
-        if (isPaused) {
-          midiPlayer.getProcessor().resume();
-        } else {
-          midiPlayer.getProcessor().pause();
+      if (!isSearchOpen) {
+        if (e.key === "b" || e.key === "B") {
+          setCurrentBgIndex((prev) => (prev + 1) % backgroundFiles.length);
+        } else if (e.key === "p" || e.key === "P") {
+          if (isPaused) {
+            midiPlayer.getProcessor().resume();
+          } else {
+            midiPlayer.getProcessor().pause();
+          }
+          setIsPaused(!isPaused);
+        } else if (e.key === "f" || e.key === "F") {
+          setIsSearchOpen(true);
+        } else if (e.key === "n" || e.key === "N") {
+          midiPlayer.nextSong();
+        } else if (e.key === "x" || e.key === "X") {
+          if (isFastForward) {
+            midiPlayer.getProcessor().setSpeed(1);
+          } else {
+            midiPlayer.getProcessor().setSpeed(3);
+          }
+          setIsFastForward(!isFastForward);
         }
-        setIsPaused(!isPaused);
-      } else if (e.key === "f" || e.key === "F") {
-        setIsSearchOpen(true);
-      } else if (e.key === "n" || e.key === "N") {
-        midiPlayer.nextSong();
-      } else if (e.key === "x" || e.key === "X") {
-        if (isFastForward) {
-          midiPlayer.getProcessor().setSpeed(1);
-        } else {
-          midiPlayer.getProcessor().setSpeed(3);
-        }
-        setIsFastForward(!isFastForward);
       }
     },
     [backgroundFiles.length, isPaused, isSearchOpen, isFastForward, midiPlayer]

@@ -81,6 +81,7 @@ export class MidiSongProcessor {
     this.setSpeed(1)
     this.pauseTimestamp = Date.now();
     this.isPaused = true;
+    this.sendAllNotesOff();
     
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);

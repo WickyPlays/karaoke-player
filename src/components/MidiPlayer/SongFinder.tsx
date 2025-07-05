@@ -22,6 +22,7 @@ import {
   Search as SearchIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
+import { formatLatinize } from "../../utils/util_format";
 
 export default function SongFinder({ onClose }: { onClose: () => void }) {
   const [songs, setSongs] = useState<Song[]>([]);
@@ -34,10 +35,6 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setSongs(midiPlayer.getLoadedSongs());
   }, []);
-
-  const normalizeString = (str: string): string => {
-    return latinize(str.toLowerCase());
-  };
 
   const handleClose = () => {
     setOpen(false);
@@ -60,16 +57,16 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    setRowsPerPage(parseInt(event.target.value));
     setPage(0);
   };
 
   const filteredSongs = songs.filter((song) => {
-    const normalizedSearch = normalizeString(searchTerm);
+    const normalizedSearch = formatLatinize(searchTerm);
     return (
-      normalizeString(song.title).includes(normalizedSearch) ||
-      normalizeString(song.artist).includes(normalizedSearch) ||
-      normalizeString(song.number).includes(normalizedSearch)
+      formatLatinize(song.title).includes(normalizedSearch) ||
+      formatLatinize(song.artist).includes(normalizedSearch) ||
+      formatLatinize(song.number).includes(normalizedSearch)
     );
   });
 

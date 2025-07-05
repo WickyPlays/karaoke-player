@@ -57,15 +57,22 @@ export default function SongQueueBar() {
       setSongs([...event.queueSongs]);
     }
 
-    function onSongPlay(event: { song: Song }) {
+    function onSongPlay(event: { song: Song, queueSongs: Song[] }) {
       setPlayingSong(event.song);
+      setSongs(event.queueSongs);
     }
 
     function onSpeedChanged(event: { speed: number }) {
       setSpeed(event.speed);
     }
 
+    function onSongStopped(event: any) {
+      setPlayingSong(null);
+      setSongs(event.queueSongs || []);
+    }
+
     globalEvent.on("song_played", onSongPlay);
+    globalEvent.on("song_stopped", onSongStopped);
     globalEvent.on("song_queue_added", onSongAdded);
     globalEvent.on("song_queue_clear", onQueueClear);
     globalEvent.on("song_queue_updated", onSongUpdated);
@@ -73,6 +80,7 @@ export default function SongQueueBar() {
 
     return () => {
       globalEvent.off("song_played", onSongPlay);
+      globalEvent.off("song_stopped", onSongStopped);
       globalEvent.off("song_queue_added", onSongAdded);
       globalEvent.off("song_queue_clear", onQueueClear);
       globalEvent.off("song_queue_updated", onSongUpdated);
@@ -102,7 +110,7 @@ export default function SongQueueBar() {
           </div>
         </div>
         <div className="meta-container">
-          <p className="current-song">
+          <div className="current-song">
             {playingSong ? (
               <p>
                 Current song: {playingSong.title} ({formatTime(currentTime)} /{" "}
@@ -111,7 +119,7 @@ export default function SongQueueBar() {
             ) : (
               <p>None</p>
             )}
-          </p>
+          </div>
           {speed > 1 && <p className="speed">{speed}x</p>}
         </div>
       </div>

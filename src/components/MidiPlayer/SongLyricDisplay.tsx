@@ -4,89 +4,114 @@ import globalEvent from "../../cores/global_event";
 import { LyricNodeGroup, Song } from "../../cores/songs";
 import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
 
-interface LyricGap {
-  start: number;
-  end: number;
-  type: "begin" | "middle" | "end";
+interface LyricFrame {
+  type:
+    | "title_show"
+    | "title_hide"
+    | "setup"
+    | "countdown"
+    | "lyric_top"
+    | "lyric_bottom"
+    | "cooldown_start"
+    | "cooldown_end";
+  time: number;
+  lineIndex?: number;
+  countdownFrom?: number;
+  metadata?: {
+    title: string;
+    artist?: string;
+    charter?: string;
+    lyricist?: string;
+  };
+  available: boolean;
 }
 
 export default function SongLyricDisplay() {
   const midiPlayer = MainMidiPlayer.getInstance();
-  const lyricGroupsRef = useRef<LyricNodeGroup[]>([]);
-  const lyricOrdersRef = useRef<number[]>([]);
   const animationFrameRef = useRef<number>(0);
   const currTimeRef = useRef<number>(0);
+  const framesRef = useRef<LyricFrame[]>([]);
+  const lyricGroupsRef = useRef<LyricNodeGroup[]>([]);
+  const titleVisibleRef = useRef<boolean>(false);
+  const processedFramesRef = useRef<Set<number>>(new Set());
 
   const [song, setSong] = useState<Song | null>(null);
-  const [lines, setLines] = useState<[LyricNodeGroup, LyricNodeGroup]>([
-    [],
-    [],
-  ]);
-  const [gaps, setGaps] = useState<LyricGap[]>([]);
-  const [cooldownTime, setCooldownTime] = useState<number>(0);
-  const [activeGap, setActiveGap] = useState<LyricGap | null>(null);
+  const [currentFrame, setCurrentFrame] = useState<LyricFrame | null>(null);
+  const [countdownValue, setCountdownValue] = useState<number | null>(null);
+  const [topLine, setTopLine] = useState<LyricNodeGroup>([]);
+  const [bottomLine, setBottomLine] = useState<LyricNodeGroup>([]);
+  const [showTitle, setShowTitle] = useState<boolean>(false);
+  const [inCooldown, setInCooldown] = useState<boolean>(false);
+  const [currentTime, setCurrentTime] = useState<number>(0);
 
   const updateLyrics = useCallback(() => {
-    const lyricGroups = lyricGroupsRef.current;
     const newTime = midiPlayer.getProcessor()?.getCurrentPlaybackTime() || 0;
     currTimeRef.current = newTime;
+    setCurrentTime(newTime);
+    const frames = framesRef.current;
+    const lyricGroups = lyricGroupsRef.current;
 
-    const currentGap = gaps.find(
-      (gap) => newTime >= gap.start && newTime < gap.end
-    );
-
-    if (currentGap) {
-      setActiveGap(currentGap);
-      setCooldownTime(Math.ceil(currentGap.end - newTime));
+    if (!frames || frames.length === 0 || lyricGroups.length === 0) {
       animationFrameRef.current = requestAnimationFrame(updateLyrics);
       return;
     }
 
-    if (activeGap) {
-      setActiveGap(null);
-      setCooldownTime(0);
-    }
+    let latestFrame: LyricFrame | null = null;
 
-    if (!lyricGroups || lyricGroups.length === 0) {
-      animationFrameRef.current = requestAnimationFrame(updateLyrics);
-      return;
-    }
+    frames.forEach((frame, index) => {
+      if (
+        newTime >= frame.time &&
+        frame.available &&
+        !processedFramesRef.current.has(index)
+      ) {
+        latestFrame = frame;
+        processedFramesRef.current.add(index);
 
-    let currGroupIndex = 0;
-    for (let i = 0; i < lyricGroups.length - 1; i++) {
-      let groupStartTime = lyricGroups[i][0].time;
-      let groupEndTime = lyricGroups[i][lyricGroups[i].length - 1].time;
-      if (newTime >= groupEndTime - (groupEndTime - groupStartTime) / 2) {
-        currGroupIndex = i + 1;
-      } else break;
-    }
+        if (frame.type === "title_show") {
+          setShowTitle(true);
+          titleVisibleRef.current = true;
+        } else if (frame.type === "title_hide") {
+          setShowTitle(false);
+          titleVisibleRef.current = false;
+        }
 
-    let tempLine0Index = 0;
-    let tempLine1Index = 1;
-    const currentOrders = lyricOrdersRef.current;
+        if (frame.type === "countdown") {
+          setCountdownValue(
+            frame.countdownFrom > 0 ? frame.countdownFrom : null
+          );
+        }
 
-    for (let i = 0; i < currGroupIndex; i++) {
-      let order = currentOrders[i];
+        if (frame.type === "lyric_top") {
+          if (frame.lineIndex !== undefined) {
+            setTopLine(lyricGroups[frame.lineIndex]);
+          } else {
+            setTopLine([]);
+          }
+        }
 
-      if (order == 0) {
-        tempLine0Index = i + 1;
-      } else if (order == 1) {
-        tempLine1Index = i + 1;
+        if (frame.type === "lyric_bottom") {
+          if (frame.lineIndex !== undefined) {
+            setBottomLine(lyricGroups[frame.lineIndex]);
+          } else {
+            setBottomLine([]);
+          }
+        }
+
+        if (frame.type === "cooldown_start") {
+          setInCooldown(true);
+        } else if (frame.type === "cooldown_end") {
+          setInCooldown(false);
+        }
+
+        framesRef.current = frames.map((f, i) =>
+          i === index ? { ...f, available: false } : f
+        );
       }
-    }
+    });
 
-    tempLine0Index = Math.max(
-      0,
-      Math.min(tempLine0Index, lyricGroups.length - 1)
-    );
-    tempLine1Index = Math.max(
-      0,
-      Math.min(tempLine1Index, lyricGroups.length - 1)
-    );
-
-    setLines([lyricGroups[tempLine0Index], lyricGroups[tempLine1Index]]);
+    setCurrentFrame(latestFrame);
     animationFrameRef.current = requestAnimationFrame(updateLyrics);
-  }, [gaps, midiPlayer, activeGap]);
+  }, [midiPlayer, countdownValue]);
 
   const renderLyricLine = (group: LyricNodeGroup) => {
     return group.map((node, index) => {
@@ -94,14 +119,14 @@ export default function SongLyricDisplay() {
       const isLastNode = index === group.length - 1;
       let fillPercentage = 0;
 
-      if (currTimeRef.current >= node.time) {
+      if (currentTime >= node.time) {
         if (isLastNode) {
           fillPercentage = 100;
-        } else if (nextNode && currTimeRef.current >= nextNode.time) {
+        } else if (nextNode && currentTime >= nextNode.time) {
           fillPercentage = 100;
         } else if (nextNode) {
           const timeDiff = nextNode.time - node.time;
-          const elapsed = currTimeRef.current - node.time;
+          const elapsed = currentTime - node.time;
           fillPercentage = Math.min((elapsed / timeDiff) * 100, 100);
         }
       }
@@ -120,94 +145,160 @@ export default function SongLyricDisplay() {
     });
   };
 
-  const initializeSong = useCallback(
-    (song: Song) => {
-      const groups = song.lyricNodeGroups || [];
-      const newGaps: LyricGap[] = [];
-      const orders: number[] = [];
-      let revolved = false;
+  const createLyricFrames = (song: Song): LyricFrame[] => {
+    const frames: LyricFrame[] = [];
+    const groups = song.lyricNodeGroups || [];
+    lyricGroupsRef.current = groups;
 
-      for (let i = 0; i < groups.length; i++) {
-        const group = groups[i];
-        const secondToLastNode = group?.[group.length - 2];
-        const lastNode = group?.[group.length - 1];
+    if (groups.length === 0) return frames;
 
-        if (secondToLastNode && lastNode) {
-          group.push({
-            time: lastNode.time + (lastNode.time - secondToLastNode.time),
-            text: "",
+    const firstGroupStartTime = groups[0][0].time;
+
+    // Title procurement
+    if (firstGroupStartTime >= 3) {
+      frames.push({
+        type: "title_show",
+        time: 0,
+        metadata: {
+          title: song.title || "Unknown title",
+          artist: song.artist,
+          charter: song.charter,
+          lyricist: song.lyricist,
+        },
+        available: true,
+      });
+
+      frames.push({
+        type: "title_hide",
+        time: firstGroupStartTime - 3,
+        available: true,
+      });
+    }
+
+    // Countdown procurement
+    const countdownableGroups = groups
+      .filter((g, i, arr) => {
+        const lastGroup = arr[i - 1];
+        return (
+          lastGroup === undefined ||
+          g[0].time - lastGroup[lastGroup.length - 1].time > 6
+        );
+      })
+      .map((g) => g[0].time);
+
+    for (let i = 0; i < countdownableGroups.length; i += 1) {
+      for (let j = 3; j >= 0; j -= 1) {
+        frames.push({
+          type: "countdown",
+          time: countdownableGroups[i] - j,
+          countdownFrom: j,
+          available: true,
+        });
+      }
+    }
+
+    // Lyrics procurement with cooldown handling
+    if (groups.length >= 1) {
+      frames.push({
+        type: "lyric_top",
+        time: firstGroupStartTime - 3,
+        lineIndex: 0,
+        available: true,
+      });
+    }
+
+    if (groups.length >= 2) {
+      frames.push({
+        type: "lyric_bottom",
+        time: firstGroupStartTime - 3,
+        lineIndex: 1,
+        available: true,
+      });
+    }
+
+    let flipped = false;
+    for (let i = 2; i < groups.length; i++) {
+      const prevGroup = groups[i - 1];
+      const currentGroup = groups[i];
+      const timeDiff =
+        currentGroup[0].time - prevGroup[prevGroup.length - 1].time;
+
+      // Check if there's a significant gap (>6s) between groups
+      if (timeDiff > 6) {
+        const cooldownStartTime = prevGroup[prevGroup.length - 1].time + 3;
+        const cooldownEndTime = currentGroup[0].time - 3;
+
+        frames.push({
+          type: "cooldown_start",
+          time: cooldownStartTime,
+          available: true,
+        });
+
+        frames.push({
+          type: "cooldown_end",
+          time: cooldownEndTime,
+          available: true,
+        });
+
+        // After cooldown, reset the flip state and add both lines
+        frames.push({
+          type: "lyric_top",
+          time: cooldownEndTime,
+          lineIndex: i,
+          available: true,
+        });
+
+        if (i + 1 < groups.length) {
+          frames.push({
+            type: "lyric_bottom",
+            time: cooldownEndTime,
+            lineIndex: i + 1,
+            available: true,
+          });
+          i++;
+        }
+        flipped = false;
+      } else {
+        if (!flipped) {
+          frames.push({
+            type: "lyric_top",
+            time:
+              prevGroup[0].time +
+              (prevGroup[prevGroup.length - 1].time - prevGroup[0].time) / 2,
+            lineIndex: i,
+            available: true,
+          });
+        } else {
+          frames.push({
+            type: "lyric_bottom",
+            time:
+              prevGroup[0].time +
+              (prevGroup[prevGroup.length - 1].time - prevGroup[0].time) / 2,
+            lineIndex: i,
+            available: true,
           });
         }
-
-        if (i == 0) {
-          orders.push(-1);
-          continue;
-        }
-
-        const lastGroup = groups[i - 1];
-        const currStartTime = groups[i][0].time;
-        const lastEndTime = lastGroup[lastGroup.length - 1].time;
-
-        if (lastGroup && currStartTime - lastEndTime > 6) {
-          orders[i] = -1;
-          revolved = false;
-          continue;
-        }
-
-        if (!revolved) {
-          orders.push(0);
-        } else {
-          orders.push(1);
-        }
-
-        revolved = !revolved;
+        flipped = !flipped;
       }
+    }
 
-      const stopIndexes = []
-      for (let i = 1; i < orders.length; i++) {
-        if (orders[i] == -1) {
-          stopIndexes.push(i)
-        }
-      }
-      for (let stopIndex of stopIndexes) {
-        orders[stopIndex - 1] = -1
-      }
+    const sortedFrames = frames.sort((a, b) => a.time - b.time);
+    return sortedFrames;
+  };
 
-      console.log(orders)
-      
-      lyricGroupsRef.current = groups;
-      lyricOrdersRef.current = orders;
+  const initializeSong = useCallback(
+    (song: Song) => {
+      const frames = createLyricFrames(song);
+      framesRef.current = frames;
+      processedFramesRef.current = new Set();
       setSong(song);
-      setLines([groups[0] || [], groups[1] || []]);
-      setCooldownTime(0);
-      setActiveGap(null);
-
-      if (groups.length > 0) {
-        const firstGroupTime = groups[0][0].time;
-        if (firstGroupTime > 3) {
-          newGaps.push({ start: 0, end: firstGroupTime, type: "begin" });
-        }
-
-        for (let i = 0; i < groups.length - 1; i++) {
-          const currentGroupEnd = groups[i][groups[i].length - 1].time + 3;
-          const nextGroupStart = groups[i + 1][0].time;
-          const gapDuration = nextGroupStart - currentGroupEnd;
-
-          if (gapDuration > 6) {
-            newGaps.push({
-              start: currentGroupEnd,
-              end: nextGroupStart,
-              type: "middle",
-            });
-          }
-        }
-
-        const lastGroupEnd =
-          groups[groups.length - 1][groups[groups.length - 1].length - 1].time;
-        newGaps.push({ start: lastGroupEnd + 3, end: Infinity, type: "end" });
-      }
-
-      setGaps(newGaps);
+      setCurrentFrame(null);
+      setCountdownValue(null);
+      setTopLine([]);
+      setBottomLine([]);
+      setShowTitle(false);
+      setInCooldown(false);
+      titleVisibleRef.current = false;
       animationFrameRef.current = requestAnimationFrame(updateLyrics);
     },
     [updateLyrics]
@@ -218,13 +309,17 @@ export default function SongLyricDisplay() {
       initializeSong(event.song);
     const handleSongStopped = () => {
       cancelAnimationFrame(animationFrameRef.current);
+      framesRef.current = [];
       lyricGroupsRef.current = [];
-      lyricOrdersRef.current = [];
+      processedFramesRef.current = new Set();
       setSong(null);
-      setLines([[], []]);
-      setGaps([]);
-      setCooldownTime(0);
-      setActiveGap(null);
+      setCurrentFrame(null);
+      setCountdownValue(null);
+      setTopLine([]);
+      setBottomLine([]);
+      setShowTitle(false);
+      setInCooldown(false);
+      titleVisibleRef.current = false;
     };
 
     animationFrameRef.current = requestAnimationFrame(updateLyrics);
@@ -240,37 +335,33 @@ export default function SongLyricDisplay() {
 
   return (
     <div className="song-lyric-display">
-      {song && activeGap && activeGap.type === "begin" && cooldownTime > 3 && (
+      {showTitle && (
         <div className="title-container">
-          <p className="song-title">{song.title || "Unknown title"}</p>
-          <p className="song-meta">Artist: {song.artist || "Unknown"}</p>
-          <p className="song-meta">Charter: {song.charter || "Unknown"}</p>
-          <p className="song-meta">Lyricist: {song.lyricist || "Unknown"}</p>
+          <p className="song-title">{song?.title}</p>
+          <p className="song-meta">Artist: {song?.artist || "Unknown"}</p>
+          <p className="song-meta">Charter: {song?.charter || "Unknown"}</p>
+          <p className="song-meta">Lyricist: {song?.lyricist || "Unknown"}</p>
         </div>
       )}
 
-      {song && activeGap && activeGap.type === "middle" && cooldownTime > 3 && (
+      {inCooldown && (
         <div className="middle-container">
           <p>Song is in cooldown</p>
         </div>
       )}
 
-      {cooldownTime <= 3 && cooldownTime > 0 && (
-        <p className="cooldown-time">{cooldownTime}</p>
+      {countdownValue !== null && (
+        <p className="cooldown-time">{countdownValue}</p>
       )}
 
-      <div className="lyric-container">
-        {cooldownTime <= 3 && (
-          <>
-            <div className="lyric-top lyric-line">
-              {renderLyricLine(lines[0])}
-            </div>
-            <div className="lyric-bottom lyric-line">
-              {renderLyricLine(lines[1])}
-            </div>
-          </>
-        )}
-      </div>
+      {!inCooldown && (
+        <div className="lyric-container">
+          <div className="lyric-top lyric-line">{renderLyricLine(topLine)}</div>
+          <div className="lyric-bottom lyric-line">
+            {renderLyricLine(bottomLine)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

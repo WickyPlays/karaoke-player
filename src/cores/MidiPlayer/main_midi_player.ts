@@ -217,7 +217,7 @@ export class MainMidiPlayer {
 
     this.processor?.processMidiSong(song).then((p) => {
       this.processor?.start();
-      globalEvent.call("song_played", { song });
+      globalEvent.call("song_played", { song, queueSongs: this.queueSongs });
     });
   }
 
