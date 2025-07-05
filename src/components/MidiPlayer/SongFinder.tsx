@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import latinize from "latinize";
 import "./SongFinder.scss";
 import { Song } from "../../cores/songs";
 import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
@@ -34,6 +35,10 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
     setSongs(midiPlayer.getLoadedSongs());
   }, []);
 
+  const normalizeString = (str: string): string => {
+    return latinize(str.toLowerCase());
+  };
+
   const handleClose = () => {
     setOpen(false);
     onClose();
@@ -55,16 +60,18 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 25));
+    setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const filteredSongs = songs.filter(
-    (song) =>
-      song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      song.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      song.number.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSongs = songs.filter((song) => {
+    const normalizedSearch = normalizeString(searchTerm);
+    return (
+      normalizeString(song.title).includes(normalizedSearch) ||
+      normalizeString(song.artist).includes(normalizedSearch) ||
+      normalizeString(song.number).includes(normalizedSearch)
+    );
+  });
 
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredSongs.length) : 0;

@@ -48,6 +48,7 @@ export class MainMidiPlayer {
     this.synth = synth;
   }
 
+  //TODO: In an attempt to prevent Tauri's HEAP_CORRUPTION problem
   public async loadAllSongs() {
     this.songs = [];
 
@@ -57,8 +58,9 @@ export class MainMidiPlayer {
       });
 
       const songDirectories = dirEntries.filter((entry) => entry.isDirectory);
+      const totalCount = songDirectories.length;
 
-      const batchSize = 30; // 30 for performance
+      const batchSize = 10;
       const batches = [];
 
       for (let i = 0; i < songDirectories.length; i += batchSize) {
@@ -66,8 +68,23 @@ export class MainMidiPlayer {
       }
 
       for (const batch of batches) {
-        const batchPromises = batch.map((entry) => this.loadSong(entry, songDirectories.length));
-        await Promise.all(batchPromises);
+        try {
+          const batchResults = await Promise.allSettled(
+            batch.map((entry) => this.loadSong(entry, totalCount))
+          );
+
+          // Handle any failed song loads
+          batchResults.forEach((result) => {
+            if (result.status === "rejected") {
+              console.error("Error loading song:", result.reason);
+            }
+          });
+
+          // Allow garbage collection between batches
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        } catch (batchError) {
+          console.error("Error processing batch:", batchError);
+        }
       }
 
       console.log(
@@ -91,7 +108,8 @@ export class MainMidiPlayer {
         `songs/${entry.name}/${jsonContent.midi_path}`,
         { baseDir: BaseDirectory.Resource }
       );
-      const midiFileBuffer = file.buffer;
+
+      const midiFileBuffer = new Uint8Array(file.buffer).buffer;
 
       const song = new Song();
       song.number = jsonContent.number;
@@ -102,7 +120,7 @@ export class MainMidiPlayer {
       song.musicMode = jsonContent.music_mode;
       song.midiFileBuffer = midiFileBuffer;
 
-      this.songs.push(song);
+      this.songs = [...this.songs, song];
 
       globalEvent.call("song_loaded", {
         song,
@@ -111,6 +129,7 @@ export class MainMidiPlayer {
       });
     } catch (error) {
       console.error(`Error loading song from directory ${entry.name}:`, error);
+      throw error;
     }
   }
 

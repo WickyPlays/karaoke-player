@@ -4,11 +4,12 @@
   box-sizing: border-box;
 
   .container {
-    background: linear-gradient(to right, #3f3f3f, #ffffff8f);
+    background: #000000a3;
     padding: 10px 20px;
     margin-top: 20px;
     border-radius: 10px;
     border-bottom-left-radius: 0px;
+    border: 2px solid #000;
   }
 
   .queue-list {

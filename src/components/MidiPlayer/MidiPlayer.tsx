@@ -1,13 +1,13 @@
 import "./MidiPlayer.scss";
 import SongSelector from "./SongSelector";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
 import SongQueueBar from "./SongQueueBar";
 import { loadBackgrounds } from "../../cores/main";
 import SongLyricDisplay from "./SongLyricDisplay";
 import SongLoadingScreen from "./SongLoadingScreen";
 import SongFinder from "./SongFinder";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import SongVideoBackground from "./SongVideoBackground";
 
 export default function MidiPlayer() {
   const midiPlayer = MainMidiPlayer.getInstance();
@@ -17,7 +17,6 @@ export default function MidiPlayer() {
   const [isPaused, setIsPaused] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isFastForward, setIsFastForward] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -32,13 +31,13 @@ export default function MidiPlayer() {
         setIsPaused(!isPaused);
       } else if (e.key === "f" || e.key === "F") {
         setIsSearchOpen(true);
-      } else if (e.key === 'n' || e.key === 'N') {
+      } else if (e.key === "n" || e.key === "N") {
         midiPlayer.nextSong();
-      } else if (e.key === 'x' || e.key === 'X') {
+      } else if (e.key === "x" || e.key === "X") {
         if (isFastForward) {
           midiPlayer.getProcessor().setSpeed(1);
         } else {
-          midiPlayer.getProcessor().setSpeed(2);
+          midiPlayer.getProcessor().setSpeed(3);
         }
         setIsFastForward(!isFastForward);
       }
@@ -64,42 +63,16 @@ export default function MidiPlayer() {
     }
   }, [backgroundFiles.length, handleKeyDown]);
 
-  // Handle video loading when background changes
-  useEffect(() => {
-    if (videoRef.current && backgroundFiles.length > 0) {
-      const video = videoRef.current;
-      const handleLoadedData = () => {
-        video.play().catch(e => console.error("Video play failed:", e));
-      };
-      
-      video.addEventListener('loadeddata', handleLoadedData);
-      video.load();
-
-      return () => {
-        video.removeEventListener('loadeddata', handleLoadedData);
-      };
-    }
-  }, [backgroundFiles, currentBgIndex]);
-
   if (!isInitialized) {
     return <SongLoadingScreen />;
   }
 
   return (
     <div className="midi-player">
-      {backgroundFiles.length > 0 && (
-        <div className="bg">
-          <video
-            ref={videoRef}
-            src={convertFileSrc(backgroundFiles[currentBgIndex])}
-            autoPlay
-            loop
-            muted
-            playsInline
-            key={backgroundFiles[currentBgIndex]}
-          />
-        </div>
-      )}
+      <SongVideoBackground
+        backgroundFiles={backgroundFiles}
+        currentBgIndex={currentBgIndex}
+      />
       <div className="content">
         <div>
           <SongQueueBar />

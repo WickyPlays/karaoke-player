@@ -65,10 +65,10 @@ export default function SongQueueBar() {
       setSpeed(event.speed);
     }
 
-    globalEvent.on("song_played", onSongPlay),
-      globalEvent.on("song_queue_added", onSongAdded),
-      globalEvent.on("song_queue_clear", onQueueClear),
-      globalEvent.on("song_queue_updated", onSongUpdated);
+    globalEvent.on("song_played", onSongPlay);
+    globalEvent.on("song_queue_added", onSongAdded);
+    globalEvent.on("song_queue_clear", onQueueClear);
+    globalEvent.on("song_queue_updated", onSongUpdated);
     globalEvent.on("song_speed_changed", onSpeedChanged);
 
     return () => {
@@ -96,7 +96,7 @@ export default function SongQueueBar() {
 
             {songs.map((song, index) => (
               <div className="queue-item" key={`${song.id}-${index}`}>
-                {song.number}
+                <p>{song.number}</p>
               </div>
             ))}
           </div>
