@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import "./SongQueueBar.scss";
 import globalEvent from "../../cores/global_event";
-import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
+import { MainPlayerCore } from "../../cores/KaraokePlayer/main_player_core";
 import { Song } from "../../cores/songs";
 
 export default function SongQueueBar() {
@@ -10,7 +10,7 @@ export default function SongQueueBar() {
   const [currentTime, setCurrentTime] = useState(0);
   const [speed, setSpeed] = useState(1);
   const animationRef = useRef<number>();
-  const midiPlayer = MainMidiPlayer.getInstance();
+  const midiPlayer = MainPlayerCore.getInstance();
 
   // Format seconds to MM:ss
   const formatTime = (seconds: number) => {
@@ -103,7 +103,7 @@ export default function SongQueueBar() {
             )}
 
             {songs.map((song, index) => (
-              <div className="queue-item" key={`${song.id}-${index}`}>
+              <div className="queue-item" key={`${index}`}>
                 <p>{song.number}</p>
               </div>
             ))}

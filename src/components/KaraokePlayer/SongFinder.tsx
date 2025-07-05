@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import latinize from "latinize";
 import "./SongFinder.scss";
 import { Song } from "../../cores/songs";
-import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
+import { MainPlayerCore } from "../../cores/KaraokePlayer/main_player_core";
 import {
   Backdrop,
   Dialog,
@@ -30,7 +29,7 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
-  const midiPlayer = MainMidiPlayer.getInstance();
+  const midiPlayer = MainPlayerCore.getInstance();
 
   useEffect(() => {
     setSongs(midiPlayer.getLoadedSongs());

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import "./SongLyricDisplay.scss";
 import globalEvent from "../../cores/global_event";
 import { LyricNodeGroup, Song } from "../../cores/songs";
-import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
+import { MainPlayerCore } from "../../cores/KaraokePlayer/main_player_core";
 
 interface LyricFrame {
   type:
@@ -27,7 +27,7 @@ interface LyricFrame {
 }
 
 export default function SongLyricDisplay() {
-  const midiPlayer = MainMidiPlayer.getInstance();
+  const midiPlayer = MainPlayerCore.getInstance();
   const animationFrameRef = useRef<number>(0);
   const currTimeRef = useRef<number>(0);
   const framesRef = useRef<LyricFrame[]>([]);

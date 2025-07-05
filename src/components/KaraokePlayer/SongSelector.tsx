@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./SongSelector.scss";
-import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
+import { MainPlayerCore } from "../../cores/KaraokePlayer/main_player_core";
 import globalEvent from "../../cores/global_event";
 
 export default function SongSelector() {
@@ -8,10 +8,10 @@ export default function SongSelector() {
   const [title, setTitle] = useState<string>("");
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [inputTimeout, setInputTimeout] = useState<NodeJS.Timeout | null>(null);
-  const midiPlayer = MainMidiPlayer.getInstance();
+  const karaokePlayer = MainPlayerCore.getInstance();
 
   useEffect(() => {
-    const song = midiPlayer.getSongByNumber(digits.join(""));
+    const song = karaokePlayer.getSongByNumber(digits.join(""));
     if (song) {
       setTitle(song.title);
     } else {
@@ -44,10 +44,10 @@ export default function SongSelector() {
       if (e.key == "Enter") {
         const currentNumber = digits.join("");
 
-        midiPlayer.addSongByNumber(currentNumber);
+        karaokePlayer.addSongByNumber(currentNumber);
 
-        if (midiPlayer.getPlayingSong() == null && midiPlayer.getQueueSongs().length == 1) {
-          midiPlayer.playSongInQueue();
+        if (karaokePlayer.getPlayingSong() == null && karaokePlayer.getQueueSongs().length == 1) {
+          karaokePlayer.playSongInQueue();
         }
         setDigits(Array(6).fill("0"));
       }

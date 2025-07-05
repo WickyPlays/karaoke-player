@@ -1,7 +1,7 @@
-import "./MidiPlayer.scss";
+import "./KaraokePlayer.scss";
 import SongSelector from "./SongSelector";
 import { useEffect, useState, useCallback } from "react";
-import { MainMidiPlayer } from "../../cores/MidiPlayer/main_midi_player";
+import { MainPlayerCore } from "../../cores/KaraokePlayer/main_player_core";
 import SongQueueBar from "./SongQueueBar";
 import { loadBackgrounds } from "../../cores/main";
 import SongLyricDisplay from "./SongLyricDisplay";
@@ -9,8 +9,8 @@ import SongLoadingScreen from "./SongLoadingScreen";
 import SongFinder from "./SongFinder";
 import SongVideoBackground from "./SongVideoBackground";
 
-export default function MidiPlayer() {
-  const midiPlayer = MainMidiPlayer.getInstance();
+export default function KaraokePlayer() {
+  const midiPlayer = MainPlayerCore.getInstance();
   const [backgroundFiles, setBackgroundFiles] = useState<string[]>([]);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -70,7 +70,7 @@ export default function MidiPlayer() {
   }
 
   return (
-    <div className="midi-player">
+    <div className="karaoke-player">
       <SongVideoBackground
         backgroundFiles={backgroundFiles}
         currentBgIndex={currentBgIndex}

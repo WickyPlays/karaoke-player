@@ -7,21 +7,21 @@ import {
 import { LyricNodeGroup, Song } from "../songs";
 import globalEvent from "../global_event";
 import { Synthetizer, Sequencer } from "spessasynth_lib";
-import { MidiSongProcessor } from "./midi_song_processor";
+import { MainPlayerProcessor } from "./main_player_processor";
 
-export class MainMidiPlayer {
-  private static instance: MainMidiPlayer;
+export class MainPlayerCore {
+  private static instance: MainPlayerCore;
   public songs: Song[];
   public queueSongs: Song[] = [];
   public playingSong: Song | null = null;
   public synth: Synthetizer | null;
   private currentSeq: Sequencer | null = null;
-  private processor: MidiSongProcessor = null;
+  private processor: MainPlayerProcessor = null;
 
   private constructor() {
     this.songs = [];
     this.synth = null;
-    this.processor = new MidiSongProcessor(this);
+    this.processor = new MainPlayerProcessor(this);
     this.loadSynth();
   }
 
@@ -282,10 +282,10 @@ export class MainMidiPlayer {
     this.processor?.cleanup();
   }
 
-  public static getInstance(): MainMidiPlayer {
-    if (!MainMidiPlayer.instance) {
-      MainMidiPlayer.instance = new MainMidiPlayer();
+  public static getInstance(): MainPlayerCore {
+    if (!MainPlayerCore.instance) {
+      MainPlayerCore.instance = new MainPlayerCore();
     }
-    return MainMidiPlayer.instance;
+    return MainPlayerCore.instance;
   }
 }

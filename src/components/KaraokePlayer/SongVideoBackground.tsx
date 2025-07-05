@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { useEffect, useRef } from "react";
 import "./SongVideoBackground.scss";
 
 interface SongVideoBackgroundProps {

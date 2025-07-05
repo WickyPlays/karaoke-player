@@ -1,6 +1,6 @@
 import globalEvent from "../global_event";
 import { Song } from "../songs";
-import { MainMidiPlayer } from "./main_midi_player";
+import { MainPlayerCore } from "./main_player_core";
 
 interface MidiEvent {
   id: number;
@@ -10,12 +10,12 @@ interface MidiEvent {
   available: boolean;
 }
 
-export class MidiSongProcessor {
+export class MainPlayerProcessor {
   private song: Song | null = null;
   private startTimestamp: number | null = null;
   private pauseTimestamp: number | null = null;
   private accumulatedPausedTime = 0;
-  private midiPlayer: MainMidiPlayer | undefined;
+  private midiPlayer: MainPlayerCore | undefined;
   private totalTime = 0;
   private events: MidiEvent[] = [];
   private animationFrameId: number | null = null;
@@ -23,7 +23,7 @@ export class MidiSongProcessor {
   private isPaused = false;
   private speed = 1.0;
 
-  constructor(midiPlayer: MainMidiPlayer) {
+  constructor(midiPlayer: MainPlayerCore) {
     this.midiPlayer = midiPlayer;
   }
 
