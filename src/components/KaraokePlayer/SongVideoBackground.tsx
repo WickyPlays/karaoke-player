@@ -1,47 +1,24 @@
-import { useEffect, useRef } from "react";
 import "./SongVideoBackground.scss";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 interface SongVideoBackgroundProps {
-  backgroundFiles: string[];
-  currentBgIndex: number;
+  backgroundFile: string;
 }
 
 export default function SongVideoBackground({
-  backgroundFiles,
-  currentBgIndex,
+  backgroundFile,
 }: SongVideoBackgroundProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    if (videoRef.current && backgroundFiles.length > 0) {
-      const video = videoRef.current;
-      const handleLoadedData = () => {
-        video.play().catch((e) => console.error("Video play failed:", e));
-      };
-
-      video.addEventListener("loadeddata", handleLoadedData);
-      video.load();
-
-      return () => {
-        video.removeEventListener("loadeddata", handleLoadedData);
-      };
-    }
-  }, [backgroundFiles, currentBgIndex]);
-
-  if (backgroundFiles.length === 0) {
-    return null;
-  }
+  console.log(convertFileSrc(backgroundFile));
 
   return (
     <div className="song-video-background">
       <video
-        ref={videoRef}
-        src={backgroundFiles[currentBgIndex]}
+        src={convertFileSrc(backgroundFile)}
         autoPlay
         loop
         muted
         playsInline
-        key={backgroundFiles[currentBgIndex]}
       />
     </div>
   );

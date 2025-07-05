@@ -72,8 +72,7 @@ export default function KaraokePlayer() {
   return (
     <div className="karaoke-player">
       <SongVideoBackground
-        backgroundFiles={backgroundFiles}
-        currentBgIndex={currentBgIndex}
+        backgroundFile={backgroundFiles[currentBgIndex]}
       />
       <div className="content">
         <div>

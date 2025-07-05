@@ -269,7 +269,7 @@ export class MainPlayerCore {
   }
 
   public nextSong() {
-    this.playSongInQueue();
+    this.processor.stop();
   }
 
   public getProcessor() {

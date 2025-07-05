@@ -83,10 +83,13 @@
 
   .cooldown-time {
     position: absolute;
+    display: inline;
     font-size: 40px;
     font-weight: 700;
-    width: 100%;
+    width: 20px;
     text-align: center;
-    transform: translate(-20%, -30px);
+    transform: translate(30vw, -50px);
+    background-color: #0000009c;
+    padding: 10px 10px;
   }
 }

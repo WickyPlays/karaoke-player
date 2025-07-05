@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./SongFinder.scss";
 import { Song } from "../../cores/songs";
 import { MainPlayerCore } from "../../cores/KaraokePlayer/main_player_core";
@@ -14,8 +14,9 @@ import {
   TableRow,
   Paper,
   IconButton,
-  TablePagination,
   InputAdornment,
+  ButtonGroup,
+  Button,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -27,12 +28,36 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
   const [songs, setSongs] = useState<Song[]>([]);
   const [open, setOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const midiPlayer = MainPlayerCore.getInstance();
+  const tableRef = useRef<HTMLDivElement>(null);
+  const letterRefs = useRef<{ [key: string]: HTMLElement | null }>({});
 
   useEffect(() => {
     setSongs(midiPlayer.getLoadedSongs());
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!tableRef.current) return;
+      
+      const scrollPosition = tableRef.current.scrollTop + 100;
+      let active = null;
+      
+      Object.entries(letterRefs.current).forEach(([letter, element]) => {
+        if (element && element.offsetTop <= scrollPosition) {
+          active = letter;
+        }
+      });
+      
+      setActiveLetter(active);
+    };
+
+    const table = tableRef.current;
+    if (table) {
+      table.addEventListener('scroll', handleScroll);
+      return () => table.removeEventListener('scroll', handleScroll);
+    }
   }, []);
 
   const handleClose = () => {
@@ -42,35 +67,41 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
 
   const handleAddToQueue = (song: Song) => {
     midiPlayer.addSongToQueue(song, true);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(parseInt(event.target.value));
-    setPage(0);
+  const scrollToLetter = (letter: string) => {
+    const element = letterRefs.current[letter];
+    if (element && tableRef.current) {
+      tableRef.current.scrollTo({
+        top: element.offsetTop - 100,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const filteredSongs = songs.filter((song) => {
-    const normalizedSearch = formatLatinize(searchTerm);
+    const normalizedSearch = formatLatinize(searchTerm.toLowerCase());
     return (
-      formatLatinize(song.title).includes(normalizedSearch) ||
-      formatLatinize(song.artist).includes(normalizedSearch) ||
-      formatLatinize(song.number).includes(normalizedSearch)
+      formatLatinize(song.title.toLowerCase()).includes(normalizedSearch) ||
+      formatLatinize(song.artist.toLowerCase()).includes(normalizedSearch) ||
+      formatLatinize(song.number.toLowerCase()).includes(normalizedSearch)
     );
   });
 
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filteredSongs.length) : 0;
+  const groupedSongs = filteredSongs.reduce((acc, song) => {
+    const firstLetter = song.title.charAt(0).toUpperCase();
+    if (!acc[firstLetter]) {
+      acc[firstLetter] = [];
+    }
+    acc[firstLetter].push(song);
+    return acc;
+  }, {} as Record<string, Song[]>);
+
+  const letters = Object.keys(groupedSongs).sort();
 
   return (
     <Backdrop open={open} onClick={handleClose}>
@@ -100,8 +131,8 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
           />
         </div>
 
-        <TableContainer component={Paper} className="song-table">
-          <Table>
+        <TableContainer component={Paper} className="song-table" ref={tableRef}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>Number</TableCell>
@@ -111,37 +142,44 @@ export default function SongFinder({ onClose }: { onClose: () => void }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredSongs
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((song) => (
-                  <TableRow key={song.number}>
-                    <TableCell width="15%">{song.number}</TableCell>
-                    <TableCell width="45%">{song.title}</TableCell>
-                    <TableCell width="30%">{song.artist}</TableCell>
-                    <TableCell>
-                      <IconButton onClick={() => handleAddToQueue(song)}>
-                        <AddIcon sx={{ color: "#000000" }} />
-                      </IconButton>
+              {letters.map((letter) => (
+                <>
+                  <TableRow key={`header-${letter}`} ref={(el) => letterRefs.current[letter] = el}>
+                    <TableCell colSpan={4} className="letter-header">
+                      {letter}
                     </TableCell>
                   </TableRow>
-                ))}
-              {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={4} />
-                </TableRow>
-              )}
+                  {groupedSongs[letter].map((song) => (
+                    <TableRow key={song.number}>
+                      <TableCell width="15%">{song.number}</TableCell>
+                      <TableCell width="45%">{song.title}</TableCell>
+                      <TableCell width="30%">{song.artist}</TableCell>
+                      <TableCell>
+                        <IconButton onClick={() => handleAddToQueue(song)}>
+                          <AddIcon sx={{ color: "#000000" }} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
+              ))}
             </TableBody>
           </Table>
-          <TablePagination
-            rowsPerPageOptions={[25, 50, 100]}
-            component="div"
-            count={filteredSongs.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
         </TableContainer>
+
+        <div className="az-navigation">
+          <ButtonGroup variant="contained">
+            {letters.map((letter) => (
+              <Button
+                key={letter}
+                onClick={() => scrollToLetter(letter)}
+                className={activeLetter === letter ? 'active' : ''}
+              >
+                {letter}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </div>
       </Dialog>
     </Backdrop>
   );
