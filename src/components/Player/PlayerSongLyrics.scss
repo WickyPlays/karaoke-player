@@ -1,0 +1,91 @@
+.song-lyric-display {
+  width: 100vw;
+
+  .lyric-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .lyric-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    background-color: #0000009c;
+    gap: 1px;
+    padding: 0 15px;
+  }
+
+  .lyric-letter {
+    font-size: 50px;
+    font-weight: 700;
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    z-index: 1;
+    height: 100%;
+    margin: 0;
+    padding: 2px 0;
+  }
+
+  .whitespace {
+    width: 10px;
+  }
+
+  .title-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    transform: translate(0, -20vh);
+    z-index: 5;
+
+    .song-title {
+      font-size: 45px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      text-shadow: 2px 0 black, -2px 0 black, 0 2px black, 0 -2px black,
+        1px 1px black, -1px -1px black;
+    }
+
+    .song-meta {
+      font-size: 25px;
+      margin-bottom: 10px;
+    }
+  }
+
+  .middle-container {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    transform: translate(0, 100px);
+    z-index: 5;
+
+    p {
+      font-size: 40px;
+      font-weight: 700;
+      color: #ffdd00;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+        1px 1px 0 #000, 0 0 2px #000;
+    }
+  }
+
+  .cooldown-time {
+    position: absolute;
+    display: inline;
+    font-size: 40px;
+    font-weight: 700;
+    width: 20px;
+    text-align: center;
+    transform: translate(30vw, -50px);
+    background-color: #0000009c;
+    padding: 10px 10px;
+  }
+}

@@ -1,0 +1,200 @@
+.player-song-finder {
+  .song-finder-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+
+  .song-finder-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 75vw;
+    height: 75vh;
+    max-width: 75vw;
+    max-height: 75vh;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .dialog-header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 8px;
+      background-color: #000000;
+      flex-shrink: 0; // Prevent header from shrinking
+
+      .btn-close {
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0;
+        color: #ffffff;
+        width: 25px;
+        height: 25px;
+        max-width: 25px;
+        max-height: 25px;
+        background-color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &:hover {
+          color: #ffffff;
+        }
+      }
+    }
+
+    .dialog-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .search-container {
+      padding: 16px;
+      background-color: #515151;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+
+      .search-field {
+        flex: 1;
+        padding: 8px 12px;
+        background-color: #707070;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        outline: none;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.7);
+        }
+      }
+
+      .btn-search {
+        background-color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+
+        .search-icon {
+          color: #000;
+          font-size: 1.2rem;
+        }
+      }
+    }
+
+    .song-table-container {
+      flex: 1;
+      overflow: auto;
+      padding: 0 8px;
+
+      .song-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+
+        thead {
+          position: sticky;
+          top: 0;
+          background-color: white;
+          z-index: 1;
+          color: #404040;
+
+          th {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        tbody {
+          color: #404040;
+
+          tr {
+            &:hover {
+              background-color: #f5f5f5;
+            }
+
+            td {
+              padding: 12px 8px;
+              border-bottom: 1px solid #e0e0e0;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+
+            .action-cell {
+              text-align: center;
+            }
+          }
+        }
+
+        .no-data {
+          text-align: center;
+          padding: 24px;
+          color: #888;
+        }
+      }
+    }
+
+    .pagination-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background-color: #f5f5f5;
+      border-top: 1px solid #e0e0e0;
+      flex-shrink: 0;
+
+      span {
+        font-weight: 500;
+      }
+
+      .pagination-btn {
+        background: none;
+        border: none;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #333;
+
+        &:disabled {
+          color: #ccc;
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    .pagination-info {
+      color: #000 !important;
+    }
+
+    .btn-add {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+
+      .add-icon {
+        font-size: 1.2rem;
+        color: #000;
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "karaoke-player",
+  "version": "0.0.1",
+  "description": "An open-source karaoke player delivered straight to your house",
+  "productName": "Karaoke Player",
+  "author": "WickyPlays <baottworkspace@gmail.com>",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0",
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "postinstall": "quasar prepare"
+  },
+  "dependencies": {
+    "@capacitor/app": "^7.0.1",
+    "@capacitor/filesystem": "^7.1.2",
+    "@capawesome/capacitor-file-picker": "^7.2.0",
+    "@quasar/extras": "^1.16.4",
+    "@sindresorhus/transliterate": "^1.6.0",
+    "howler": "^2.2.4",
+    "quasar": "^2.16.0",
+    "spessasynth_lib": "^3.27.4",
+    "vue": "^3.4.18",
+    "vue-i18n": "^11.0.0",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@electron/packager": "^18.3.6",
+    "@intlify/unplugin-vue-i18n": "^4.0.0",
+    "@quasar/app-vite": "^2.1.0",
+    "@types/howler": "^2.2.12",
+    "@types/node": "^20.5.9",
+    "autoprefixer": "^10.4.2",
+    "electron": "^37.2.2",
+    "typescript": "~5.5.3"
+  },
+  "engines": {
+    "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}

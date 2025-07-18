@@ -1,0 +1,53 @@
+.song-queue-bar {
+  width: 100vw;
+  padding: 0 3rem;
+  box-sizing: border-box;
+
+  .container {
+    background: #000000a3;
+    padding: 10px 20px;
+    margin-top: 20px;
+    border-radius: 10px;
+    border-bottom-left-radius: 0px;
+    border: 2px solid #000;
+  }
+
+  .queue-list {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .queue-item {
+    font-size: 20px;
+    color: #ffffff;
+  }
+
+  .queue-play {
+    color: #68ff68;
+  }
+
+  .queue-next {
+    color: #fff200;
+  }
+
+  .meta-container {
+    box-sizing: border-box;
+    background-color: #ffffff;
+    color: #000000;
+    padding: 2px 20px;
+    border-radius: 10px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    display: inline-flex;
+    gap: 10px;
+
+    .speed {
+      color: #FFF;
+      background-color: #0d9700;
+      padding: 0 10px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+  }
+}

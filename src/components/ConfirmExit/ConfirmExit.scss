@@ -1,0 +1,41 @@
+.confirm-exit {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #00000089;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+
+  .confirm-exit-content {
+    background-color: #161616;
+    border: 2px solid #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .btn-option {
+    background-color: #ffffff;
+    color: #000000;
+    border: none;
+    padding: 4px 20px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 17px;
+    text-transform: none;
+
+    &:hover {
+      background-color: #e0e0e0;
+    }
+  }
+}

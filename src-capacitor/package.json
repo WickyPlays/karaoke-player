@@ -1,0 +1,16 @@
+{
+  "name": "karaoke-player",
+  "version": "0.0.1",
+  "description": "An open-source karaoke player delivered straight to your house",
+  "author": "WickyPlays <baottworkspace@gmail.com>",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/filesystem": "^7.1.2",
+    "@capawesome/capacitor-file-picker": "^7.2.0",
+    "@jcesarmobile/ssl-skip": "^0.4.0"
+  }
+}

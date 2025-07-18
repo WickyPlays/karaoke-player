@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Karaoke Player</string>
+    <string name="title_activity_main">Karaoke Player</string>
+    <string name="package_name">me.wickyplays.app.karaokeplayer</string>
+    <string name="custom_url_scheme">me.wickyplays.app.karaokeplayer</string>
+</resources>
