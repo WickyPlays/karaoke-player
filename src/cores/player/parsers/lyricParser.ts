@@ -46,6 +46,7 @@ export class LyricParser {
     try {
       const lyricGroups: LyricNodeGroup[] = JSON.parse(file.content);
       const frames = this.createLyricFrames(song, lyricGroups);
+
       return { lyricGroups, frames };
     } catch (e) {
       console.error("Failed to parse lyrics:", e);

@@ -135,7 +135,7 @@ export default defineComponent({
     };
 
     const initializeSong = async (song: Song) => {
-      const { lyricGroups, frames } = await LyricParser.parseLyricFramesFromSong(song);
+      const { lyricGroups, frames } = Player.instance().getLyricFrames()
 
       framesRef.value = frames;
       lyricGroupsRef.value = lyricGroups;

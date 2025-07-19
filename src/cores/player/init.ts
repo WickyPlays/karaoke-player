@@ -9,6 +9,7 @@ import { Buffer } from "buffer";
 import { isPlatformPhone, isPlatformDesktop } from "../utils/util_platform";
 import { DirectoryManager } from "./managers/directory_manager";
 import { AudioManager } from "./managers/audio_manager";
+import { LyricParser } from "./parsers/lyricParser";
 
 export class Player {
   private static _instance: Player;
@@ -18,7 +19,7 @@ export class Player {
   private audioContext: AudioContext | null = null;
   private synth: Synthetizer | null = null;
   private currentProcessor: IKaraokePlayerProcessor | null = null;
-  private lyricFrames = [];
+  private lyricFrames: {} = [];
   private totalSongs = 0;
 
   private constructor() {
@@ -170,6 +171,7 @@ export class Player {
         : (await window.electronAPI.readFile(songPath)).buffer;
 
       this.playingSong.setFileBuffer(songBuffer);
+      this.lyricFrames = await LyricParser.parseLyricFramesFromSong(song);
       this.currentProcessor =
         song.getSongType() === SongType.MIDI
           ? new KaraokePlayerMidiProcessor()
