@@ -1,10 +1,8 @@
 <template>
   <div class="player-loading">
-    <p class="loading">{{ title }}</p>
-    <p class="song-name">{{ subtitle }}</p>
-    <div class="progress-bar">
-      <div class="progress-fill" :style="{ width: `${percentage}%` }"></div>
-    </div>
+    <p class="loading">{{ title || "Loading..."}}</p>
+    <p class="song-name">{{ subtitle || "Please wait" }}</p>
+    <p class="footer">{{ footer || '' }}</p>
   </div>
 </template>
 
@@ -19,15 +17,14 @@ export default {
     const songName = ref('');
     const title = ref('');
     const subtitle = ref('');
-    const percentage = ref(0);
+    const footer = ref('');
 
     const onload = (e: any) => {
       songName.value = e.song.title;
       title.value = e.title
       subtitle.value = e.subtitle
-      percentage.value = e.percentage
+      footer.value = e.footer
     };
-
 
     onMounted(() => {
       globalEvent.on('player_load_update', onload);
@@ -41,7 +38,7 @@ export default {
       songName,
       title,
       subtitle,
-      percentage
+      footer
     };
   }
 }

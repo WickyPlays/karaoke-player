@@ -21,7 +21,7 @@
         <div class="settings-panel">
           <q-tab-panels v-model="activeTab" animated>
             <q-tab-panel name="general">
-              <p>{{ $t('settings.general.empty') }}</p>
+              <SettingsGeneral />
             </q-tab-panel>
 
             <q-tab-panel name="locales">
@@ -51,10 +51,12 @@ import bg from "../../assets/bg.mp4";
 import SettingsDirectories from "../../components/Settings/SettingsDirectories.vue";
 import SettingsLanguages from "../Settings/SettingsLanguages.vue"
 import SettingsLyrics from "../../components/Settings/SettingsLyrics.vue";
+import SettingsGeneral from './SettingsGeneral.vue';
 
 export default {
   name: 'SettingsPage',
   components: {
+    SettingsGeneral,
     SettingsDirectories,
     SettingsLanguages,
     SettingsLyrics

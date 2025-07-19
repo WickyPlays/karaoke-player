@@ -5,9 +5,10 @@ import { Synthetizer } from "spessasynth_lib";
 import globalEvent from "../global_events";
 import { KaraokePlayerMidiProcessor } from "./processors/midiProcessor";
 import { KaraokePlayerAudioProcessor } from "./processors/audioProcessor";
-import { Store } from "../store";
 import { Buffer } from "buffer";
 import { isPlatformPhone, isPlatformDesktop } from "../utils/util_platform";
+import { DirectoryManager } from "./managers/directory_manager";
+import { AudioManager } from "./managers/audio_manager";
 
 export class Player {
   private static _instance: Player;
@@ -17,12 +18,13 @@ export class Player {
   private audioContext: AudioContext | null = null;
   private synth: Synthetizer | null = null;
   private currentProcessor: IKaraokePlayerProcessor | null = null;
+  private lyricFrames = [];
   private totalSongs = 0;
 
   private constructor() {
     this.songs = [];
     this.queueSongs = [];
-    globalEvent.on("song_stopped", () => this.playSongInQueue());
+    globalEvent.on("player_song_stopped", () => this.playSongInQueue());
   }
 
   public static instance(): Player {
@@ -32,10 +34,11 @@ export class Player {
   public async setup(): Promise<void> {
     console.log("Setting up...");
     globalEvent.call("player_load_start");
-    await this.createMissingFolders();
+    await DirectoryManager.instance().createMissingFolders();
     await this.loadSynth();
     await this.loadAllSongs();
     globalEvent.call("player_load_end");
+    await AudioManager.instance().playWaitingMusic();
   }
 
   public async loadAllSongs() {
@@ -79,9 +82,11 @@ export class Player {
           song.setArtist(songJson.artist);
           song.setSongPath(songJson?.song_path);
           song.setLyricPath(songJson?.lyric_path);
+          song.setBgPath(songJson?.bg_path);
           song.setJudgementPath(songJson?.judgement_path);
           song.setSongType(
-            songJson?.song_path?.endsWith(".mid")
+            songJson?.song_path?.endsWith(".mid") ||
+              songJson?.song_path?.endsWith(".kar")
               ? SongType.MIDI
               : SongType.AUDIO
           );
@@ -97,9 +102,9 @@ export class Player {
     this.songs.push(song);
     globalEvent.call("player_load_update", {
       song,
-      percentage: (this.songs.length / this.totalSongs) * 100,
       title: "Loading songs ",
       subtitle: song.getTitle(),
+      footer: `(${this.songs.length}/${this.totalSongs})`,
     });
   }
 
@@ -141,8 +146,11 @@ export class Player {
   }
 
   public async playSong(song: Song) {
-    if (!song) return;
+    if (!song) {
+      return;
+    }
 
+    AudioManager.instance().stopWaitingMusic();
     try {
       this.playingSong = song;
       const songPath: string = `${song.getParentFolder()}/${song.getSongPath()}`;
@@ -175,7 +183,27 @@ export class Player {
     }
   }
 
-  public playSongInQueue() {
+  public async getCurrentVideoBackground() {
+    try {
+      const song: Song | null = this.playingSong;
+      if (song) {
+        const bg = await window.electronAPI.readFile(
+          song.getParentFolder() + "\\" + song.getBgPath()
+        );
+        if (bg) {
+          const uri = await window.electronAPI.getFileURL(bg.path);
+          return uri.url;
+        }
+      }
+    } catch (error) {
+      console.error("Error getting current background:", error);
+      return null;
+    }
+
+    return null;
+  }
+
+  public async playSongInQueue() {
     if (this.queueSongs.length > 0) {
       const song = this.queueSongs.shift();
       if (song) {
@@ -192,7 +220,9 @@ export class Player {
         });
       }
     } else {
-      this.cleanup();
+      this.currentProcessor?.stop();
+      this.playingSong = null;
+      await AudioManager.instance().playWaitingMusic();
     }
   }
 
@@ -212,6 +242,10 @@ export class Player {
     return this.synth;
   }
 
+  public getLyricFrames() {
+    return this.lyricFrames;
+  }
+
   public clearQueue() {
     this.queueSongs = [];
     globalEvent.call("song_queue_clear");
@@ -225,53 +259,40 @@ export class Player {
     this.playingSong = null;
     this.currentProcessor?.cleanup();
     this.currentProcessor = null;
-  }
-
-  public async createMissingFolders() {
-    if (isPlatformPhone()) {
-      await Filesystem.requestPermissions().catch(() => {});
-      await Promise.all(
-        ["backgrounds", "songs"].map((path) =>
-          Filesystem.mkdir({
-            path,
-            directory: Directory.External,
-            recursive: true,
-          }).catch(console.error)
-        )
-      );
-    } else if (isPlatformDesktop()) {
-      const parentFolder = await window.electronAPI.getAppPath();
-      console.log("Parent folder: ", parentFolder);
-      await Promise.all(
-        ["backgrounds", "songs"].map((path) =>
-          window.electronAPI.createFolder(parentFolder + "/" + path)
-        )
-      );
-    }
+    this.queueSongs = [];
+    this.songs = [];
+    this.lyricFrames = [];
+    this.synth = null;
+    this.totalSongs = 0;
+    console.log("Cleaning up, please wait...");
   }
 
   public async getBackgroundsItems(): Promise<string[]> {
-    // if (isPlatformPhone()) {
-    //   return Filesystem.readdir({
-    //     path: "backgrounds",
-    //     directory: Directory.External,
-    //   });
-    // }
+    try {
+      // if (isPlatformPhone()) {
+      //   return Filesystem.readdir({
+      //     path: "backgrounds",
+      //     directory: Directory.External,
+      //   });
+      // }
 
-    if (isPlatformDesktop()) {
-      const parentFolder = await window.electronAPI.getAppPath();
-      const files = await window.electronAPI.openDirectory(
-        parentFolder + "/backgrounds"
-      );
+      if (isPlatformDesktop()) {
+        const parentFolder = await window.electronAPI.getAppPath();
+        const files = await window.electronAPI.openDirectory(
+          parentFolder + "/backgrounds"
+        );
 
-      const urls = await Promise.all(
-        files.map(async (f: any) => {
-          const uri = await window.electronAPI.getFileURL(f.path);
-          return uri.url;
-        })
-      );
+        const urls = await Promise.all(
+          files.map(async (f: any) => {
+            const uri = await window.electronAPI.getFileURL(f.path);
+            return uri.url;
+          })
+        );
 
-      return urls;
+        return urls;
+      }
+    } catch (e) {
+      return [];
     }
 
     return [];

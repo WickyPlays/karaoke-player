@@ -10,6 +10,8 @@ export default {
     general: {
       tab: 'General',
       empty: 'No settings available at the moment',
+      homeMusic: 'Enable home music',
+      waitingMusic: 'Enable waiting music',
     },
     locales: 'Language',
     language: 'Select Language',

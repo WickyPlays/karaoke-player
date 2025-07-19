@@ -10,6 +10,8 @@ export default {
     general: {
       tab: 'Cài đặt chung',
       empty: 'Không có cài đặt nào',
+      homeMusic: 'Kích hoạt nhạc trên trang chủ',
+      waitingMusic: 'Kích hoạt nhạc khi chờ',
     },
     locales: 'Ngôn ngữ',
     language: 'Chọn ngôn ngữ',

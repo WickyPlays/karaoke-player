@@ -56,12 +56,12 @@ onMounted(() => {
   }
 
   globalEvent.on('song_played', onSongPlayed)
-  globalEvent.on('song_stopped', onSongStopped)
+  globalEvent.on('player_song_stopped', onSongStopped)
 
   onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleKeyDown)
     globalEvent.off('song_played', onSongPlayed)
-    globalEvent.off('song_stopped', onSongStopped)
+    globalEvent.off('player_song_stopped', onSongStopped)
   })
 })
 </script>

@@ -22,10 +22,11 @@
 
 <script lang="ts">
 import './HomeComp.scss';
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted, onUnmounted } from 'vue';
 import bg from '../../assets/bg.mp4';
 import { useQuasar } from 'quasar';
 import { App } from '@capacitor/app';
+import { AudioManager } from 'src/cores/player/managers/audio_manager';
 
 export default defineComponent({
   name: 'HomeComp',
@@ -39,6 +40,18 @@ export default defineComponent({
         App.exitApp();
       }
     };
+
+    const playTitleMusic = () => {
+      AudioManager.instance().playHomeMusic();
+    };
+
+    onMounted(() => {
+      playTitleMusic();
+    });
+
+    onUnmounted(() => {
+      AudioManager.instance().stopHomeMusic();
+    });
 
     return {
       bg,

@@ -1,15 +1,12 @@
 <template>
   <div class="song-queue-bar">
-    <div
-      class="content"
-      :style="{
-        display: !playingSong && songs.length === 0 ? 'none' : 'block',
-      }"
-    >
+    <div class="content" :style="{
+      display: !playingSong && songs.length === 0 ? 'none' : 'block',
+    }">
       <div class="container">
         <div class="queue-list">
           <div v-if="playingSong" class="queue-item queue-play">
-            {{ playingSong.getNumber()}}
+            {{ playingSong.getNumber() }}
           </div>
 
           <div v-for="(song, index) in songs" :key="index" class="queue-item">
@@ -65,21 +62,6 @@ export default {
       animationRef.value = requestAnimationFrame(updateTime);
     };
 
-    onMounted(() => {
-      const currentSong = midiPlayer?.getPlayingSong();
-      if (currentSong) {
-        playingSong.value = currentSong;
-      }
-
-      animationRef.value = requestAnimationFrame(updateTime);
-    });
-
-    onUnmounted(() => {
-      if (animationRef.value) {
-        cancelAnimationFrame(animationRef.value);
-      }
-    });
-
     const onSongAdded = (event) => {
       songs.value = Array.isArray(event.queueSongs) ? [...event.queueSongs] : [];
     };
@@ -108,20 +90,35 @@ export default {
 
     onMounted(() => {
       globalEvent.on("song_played", onSongPlay);
-      globalEvent.on("song_stopped", onSongStopped);
+      globalEvent.on("player_song_stopped", onSongStopped);
       globalEvent.on("song_queue_added", onSongAdded);
       globalEvent.on("song_queue_clear", onQueueClear);
       globalEvent.on("song_queue_updated", onSongUpdated);
       globalEvent.on("song_speed_changed", onSpeedChanged);
+
+      const currentSong = midiPlayer?.getPlayingSong();
+      if (currentSong) {
+        playingSong.value = currentSong;
+      }
+
+      animationRef.value = requestAnimationFrame(updateTime);
     });
 
     onUnmounted(() => {
       globalEvent.off("song_played", onSongPlay);
-      globalEvent.off("song_stopped", onSongStopped);
+      globalEvent.off("player_song_stopped", onSongStopped);
       globalEvent.off("song_queue_added", onSongAdded);
       globalEvent.off("song_queue_clear", onQueueClear);
       globalEvent.off("song_queue_updated", onSongUpdated);
       globalEvent.off("song_speed_changed", onSpeedChanged);
+
+      if (animationRef.value) {
+        cancelAnimationFrame(animationRef.value);
+      }
+
+      playingSong.value = null;
+      songs.value = [];
+
     });
 
     return {

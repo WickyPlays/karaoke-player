@@ -1,4 +1,4 @@
-import { Song, LyricNodeGroup } from "./song";
+import { Song } from "./song";
 
 export interface IKaraokePlayerProcessor {
   processSong(song: Song): Promise<Song>;
@@ -13,8 +13,4 @@ export interface IKaraokePlayerProcessor {
   cleanup(): void;
   isRunning(): boolean;
   isPausedState(): boolean;
-}
-
-export interface IKaraokePlayerParser {
-  parseLyrics(song: Song): Promise<LyricNodeGroup[]>;
 }

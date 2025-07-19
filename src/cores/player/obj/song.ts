@@ -7,6 +7,7 @@ export interface ISong {
   charter: string;
   lyricist: string;
   songPath: string;
+  bgPath?: string | undefined;
   lyricPath?: string | undefined;
   judgementPath?: string | undefined;
   fileBuffer?: ArrayBuffer | undefined;
@@ -14,8 +15,9 @@ export interface ISong {
 }
 
 export type LyricNode = {
-  time: number;
-  text: string;
+  t: string;
+  s: number;
+  e: number;
 };
 
 export enum SongType {
@@ -35,10 +37,10 @@ export class Song implements ISong {
   private _charter: string;
   private _lyricist: string;
   private _songPath: string;
+  private _bgPath?: string | undefined;
   private _lyricPath?: string | undefined;
   private _judgementPath?: string | undefined;
   private _fileBuffer?: ArrayBuffer | undefined;
-  private _lyricNodeGroups: LyricNodeGroup[] = [];
   private _songType: SongType;
 
   constructor(init?: Partial<ISong>) {
@@ -50,6 +52,7 @@ export class Song implements ISong {
     this._charter = init?.charter ?? "";
     this._lyricist = init?.lyricist ?? "";
     this._songPath = init?.songPath ?? "";
+    this._bgPath = init?.bgPath ?? "";
     this._lyricPath = init?.lyricPath;
     this._judgementPath = init?.judgementPath;
     this._fileBuffer = init?.fileBuffer;
@@ -120,6 +123,14 @@ export class Song implements ISong {
     return this;
   }
 
+  getBgPath(): string | undefined {
+    return this._bgPath;
+  }
+  setBgPath(value: string | undefined): this {
+    this._bgPath = value;
+    return this;
+  }
+
   getLyricPath(): string | undefined {
     return this._lyricPath;
   }
@@ -144,29 +155,11 @@ export class Song implements ISong {
     return this;
   }
 
-  getLyricNodeGroups(): LyricNodeGroup[] {
-    return this._lyricNodeGroups;
-  }
-  setLyricNodeGroups(value: LyricNodeGroup[]): this {
-    this._lyricNodeGroups = value;
-    return this;
-  }
-
   getSongType(): SongType {
     return this._songType;
   }
   setSongType(value: SongType): this {
     this._songType = value;
-    return this;
-  }
-
-  addLyricGroup(group: LyricNodeGroup): this {
-    this._lyricNodeGroups.push(group);
-    return this;
-  }
-
-  clearLyricGroups(): this {
-    this._lyricNodeGroups = [];
     return this;
   }
 

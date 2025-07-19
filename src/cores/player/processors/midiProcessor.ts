@@ -2,7 +2,6 @@ import { IKaraokePlayerProcessor } from "../obj/interfaces";
 import { Song } from "../obj/song";
 import { Sequencer } from "spessasynth_lib";
 import globalEvent from "src/cores/global_events";
-import { KaraokePlayerMidiParser } from "../parsers/midiParsers";
 import { Player } from "../init";
 
 type MidiEvent = {
@@ -26,11 +25,6 @@ export class KaraokePlayerMidiProcessor implements IKaraokePlayerProcessor {
   private isPaused = false;
   private speed = 1.0;
   private sequencer: Sequencer | null = null;
-  private parser: KaraokePlayerMidiParser;
-
-  constructor() {
-    this.parser = new KaraokePlayerMidiParser();
-  }
 
   public async processSong(song: Song): Promise<Song> {
     this.cleanup();
@@ -67,10 +61,6 @@ export class KaraokePlayerMidiProcessor implements IKaraokePlayerProcessor {
         available: true,
       };
     });
-
-    // Parse lyrics
-    const lyricGroups = await this.parser.parseLyrics(song);
-    song.setLyricNodeGroups(lyricGroups);
 
     return song;
   }
@@ -133,7 +123,7 @@ export class KaraokePlayerMidiProcessor implements IKaraokePlayerProcessor {
     this.accumulatedPausedTime = 0;
 
     this.sendAllNotesOff();
-    globalEvent.call("song_stopped", { song: this.song });
+    globalEvent.call("player_song_stopped", { song: this.song });
   }
 
   private sendAllNotesOff() {

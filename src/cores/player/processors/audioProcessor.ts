@@ -70,7 +70,7 @@ export class KaraokePlayerAudioProcessor implements IKaraokePlayerProcessor {
     this.howl.stop();
     this.isPlaying = false;
     this.isPaused = false;
-    globalEvent.call("song_stopped", { song: this.song });
+    globalEvent.call("player_song_stopped", { song: this.song });
   }
 
   getSpeed(): number {

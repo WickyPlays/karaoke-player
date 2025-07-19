@@ -22,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted, onBeforeUnmount, onBeforeMount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, onBeforeMount, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import PlayerBackground from './PlayerBackground.vue';
 import PlayerSongSelector from './PlayerSongSelector.vue';
@@ -34,6 +34,7 @@ import PlayerSongFinder from './PlayerSongFinder.vue';
 import PlayerSongLyrics from './PlayerSongLyrics.vue';
 import PlayerLoading from './PlayerLoading.vue';
 import globalEvent from 'src/cores/global_events';
+import { AudioManager } from 'src/cores/player/managers/audio_manager';
 
 export default {
   name: 'PlayerComp',
@@ -107,10 +108,13 @@ export default {
       Player.instance().setup();
     });
 
-    onBeforeUnmount(() => {
+    onUnmounted(() => {
       window.removeEventListener('keydown', handleKeyDown);
       globalEvent.off('player_load_start', (e) => handleLoadStart());
       globalEvent.off('player_load_end', (e) => handleLoadEnd());
+
+      AudioManager.instance().stopAllMusic();
+      Player.instance().cleanup();
     });
 
     return {
